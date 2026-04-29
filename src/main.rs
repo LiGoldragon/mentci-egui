@@ -1,11 +1,10 @@
 //! mentci-egui — entry point.
 //!
-//! Constructs the [`MentciEguiApp`] (which wraps a fresh
-//! [`mentci_lib::WorkbenchState`]), opens the eframe window,
-//! runs the per-frame loop. Daemon connections open
-//! asynchronously after the first frame paints — the user
-//! sees disconnected status, then transitions as the
-//! handshakes complete.
+//! Constructs a tokio runtime (so connection drivers can run
+//! UDS I/O off the egui thread), builds the [`MentciEguiApp`]
+//! (which wraps a fresh [`mentci_lib::WorkbenchState`]), opens
+//! the eframe window. Daemon connections are auto-attempted
+//! on the first frame; the user sees the lifecycle on screen.
 
 mod app;
 mod error;
@@ -14,6 +13,11 @@ mod render;
 use app::MentciEguiApp;
 
 fn main() -> eframe::Result<()> {
+    let tokio_runtime = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .expect("failed to build tokio runtime");
+
     let native_options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_title("mentci")
@@ -25,7 +29,9 @@ fn main() -> eframe::Result<()> {
     eframe::run_native(
         "mentci",
         native_options,
-        Box::new(|_cc| Box::new(MentciEguiApp::new(default_principal()))),
+        Box::new(move |_cc| {
+            Box::new(MentciEguiApp::new(default_principal(), tokio_runtime))
+        }),
     )
 }
 

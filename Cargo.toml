@@ -17,6 +17,7 @@ signal     = { git = "https://github.com/LiGoldragon/signal", branch = "main" }
 eframe     = "0.27"
 egui       = "0.27"
 thiserror  = "2"
+tokio      = { version = "1", features = ["rt-multi-thread"] }
 
 [lints.rust]
 unused = "allow"
