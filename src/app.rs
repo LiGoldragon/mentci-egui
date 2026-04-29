@@ -144,10 +144,7 @@ impl MentciEguiApp {
                     ));
                 }
             }
-            Cmd::Subscribe { .. }
-            | Cmd::Unsubscribe { .. }
-            | Cmd::RenderViaNexus { .. }
-            | Cmd::SetTimer { .. } => {
+            Cmd::RenderViaNexus { .. } | Cmd::SetTimer { .. } => {
                 // Real wiring lands as the corresponding wire
                 // verbs are exercised end-to-end. For now, drop
                 // silently — the model has already updated.
