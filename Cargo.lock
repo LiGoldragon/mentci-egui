@@ -1981,7 +1981,7 @@ dependencies = [
 [[package]]
 name = "mentci-lib"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/mentci-lib?branch=main#8b8b0de332ca2842c0c581e4b21ab57c8c28b659"
+source = "git+https://github.com/LiGoldragon/mentci-lib?branch=main#a89dc87c65e94fdd2acb6ada3caf463962050878"
 dependencies = [
  "rkyv",
  "signal",
@@ -2895,7 +2895,7 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 [[package]]
 name = "signal"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/signal?branch=main#b37091778464fde8c4adc926970ebedd07c42e27"
+source = "git+https://github.com/LiGoldragon/signal?branch=main#7ed8acdcd9f10274624d48e80e362c1d2bfa3a21"
 dependencies = [
  "nota-codec",
  "rkyv",

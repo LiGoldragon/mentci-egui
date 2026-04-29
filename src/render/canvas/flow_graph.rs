@@ -89,13 +89,16 @@ fn paint_edge(
     edge: &RenderedEdge,
     nodes: &[RenderedNode],
 ) {
-    let from_idx: u64 = edge.from.into();
-    let to_idx: u64 = edge.to.into();
-    let from = match nodes.get(from_idx as usize) {
+    // Endpoint resolution: real sema slots since the wire grew
+    // records-with-slots. Edges whose endpoints aren't in the
+    // cached node set silently skip painting — the line would
+    // have nowhere to go. (A future tweaks-pane toggle could
+    // surface them as "outside-graph" stubs.)
+    let from = match nodes.iter().find(|n| n.slot == edge.from) {
         Some(n) => n,
         None => return,
     };
-    let to = match nodes.get(to_idx as usize) {
+    let to = match nodes.iter().find(|n| n.slot == edge.to) {
         Some(n) => n,
         None => return,
     };
