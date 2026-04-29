@@ -18,8 +18,15 @@ pub fn paint(
     view: &FlowGraphView,
     out_events: &mut Vec<UserEvent>,
 ) {
-    // Title at top-left.
-    ui.label(format!("graph: {}", view.graph.title));
+    // Title + add-node affordance at top.
+    ui.horizontal(|ui| {
+        ui.label(format!("graph: {}", view.graph.title));
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            if ui.button("+ node").clicked() {
+                out_events.push(UserEvent::OpenNewNodeFlow);
+            }
+        });
+    });
     ui.separator();
 
     // Allocate the full remaining rect for the canvas.

@@ -1981,7 +1981,7 @@ dependencies = [
 [[package]]
 name = "mentci-lib"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/mentci-lib?branch=main#a89dc87c65e94fdd2acb6ada3caf463962050878"
+source = "git+https://github.com/LiGoldragon/mentci-lib?branch=main#a9bdce0d88a5e9d38d675a52325764569f4e8133"
 dependencies = [
  "rkyv",
  "signal",
