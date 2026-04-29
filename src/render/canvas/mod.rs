@@ -16,11 +16,12 @@ pub fn canvas(
 ) {
     match view {
         CanvasView::Empty => {
-            // Nothing to paint; canvas pane shows a hint.
-            todo!()
+            ui.centered_and_justified(|ui| {
+                ui.label("(select a graph to view)");
+            });
         }
-        CanvasView::FlowGraph(view) => {
-            flow_graph::paint(ui, view, out_events)
+        CanvasView::FlowGraph(flow_view) => {
+            flow_graph::paint(ui, flow_view, out_events);
         }
     }
 }
