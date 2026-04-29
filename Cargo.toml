@@ -1,0 +1,23 @@
+[package]
+name         = "mentci-egui"
+version      = "0.1.0"
+edition      = "2024"
+rust-version = "1.85"
+license      = "MIT OR Apache-2.0"
+repository   = "https://github.com/LiGoldragon/mentci-egui"
+description  = "mentci-egui — first incarnation of the mentci interaction surface. Thin egui shell atop mentci-lib. Renders WorkbenchView snapshots, captures gestures, emits UserEvents. Linux + Mac first-class. Skeleton-as-design."
+
+[[bin]]
+name = "mentci-egui"
+path = "src/main.rs"
+
+[dependencies]
+mentci-lib = { git = "https://github.com/LiGoldragon/mentci-lib", branch = "main" }
+signal     = { git = "https://github.com/LiGoldragon/signal", branch = "main" }
+eframe     = "0.27"
+egui       = "0.27"
+thiserror  = "2"
+
+[lints.rust]
+unused = "allow"
+dead_code = "allow"
