@@ -53,7 +53,10 @@ pub fn workbench(
                 ui.label("(no graphs yet)");
             } else {
                 for entry in &view.graphs_nav.graphs {
-                    ui.label(&entry.display_name);
+                    let selected = view.graphs_nav.selected_slot == Some(entry.slot);
+                    if ui.selectable_label(selected, &entry.display_name).clicked() {
+                        out_events.push(UserEvent::SelectGraph { slot: entry.slot });
+                    }
                 }
             }
         });
