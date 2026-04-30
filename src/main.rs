@@ -35,9 +35,10 @@ fn main() -> eframe::Result<()> {
     )
 }
 
-/// Default Principal slot for the first session. Genesis seed
-/// reserves slots `[0, 1024)`; the local human is slot 0 by
-/// convention until multi-Principal lands.
-fn default_principal() -> signal::Slot {
+/// Default Principal slot for the first session. The local human
+/// is slot 0 by convention until per-user identity ([reports/117
+/// §4.3](https://github.com/LiGoldragon/mentci/blob/main/reports/117-implementation-gap-2026-04-30.md))
+/// lands.
+fn default_principal() -> signal::Slot<signal::Principal> {
     signal::Slot::from(0u64)
 }

@@ -50,7 +50,7 @@ pub struct MentciEguiApp {
 }
 
 impl MentciEguiApp {
-    pub fn new(principal: signal::Slot, tokio_runtime: Runtime) -> Self {
+    pub fn new(principal: signal::Slot<signal::Principal>, tokio_runtime: Runtime) -> Self {
         Self {
             workbench: WorkbenchState::new(principal),
             pending_cmds: Vec::new(),
