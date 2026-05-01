@@ -1,7 +1,7 @@
 # ARCHITECTURE — mentci-egui
 
 The first incarnation of the **mentci** interaction surface.
-A thin egui shell atop [mentci-lib](https://github.com/LiGoldragon/mentci-lib).
+A thin egui shell atop mentci-lib.
 
 ## Role
 
@@ -95,13 +95,13 @@ All bodies are `todo!()` skeleton-as-design.
 ## Cross-cutting context
 
 - Project intent:
-  [lore/INTENTION.md](https://github.com/LiGoldragon/lore/blob/main/INTENTION.md)
+  lore/INTENTION.md
 - Project-wide architecture:
-  [criome/ARCHITECTURE.md](https://github.com/LiGoldragon/criome/blob/main/ARCHITECTURE.md)
+  criome/ARCHITECTURE.md
 - The first design report:
-  [mentci/reports/111](https://github.com/LiGoldragon/mentci/blob/main/reports/111-first-mentci-ui-introspection-2026-04-29.md)
+  workspace/reports/111
 - The library:
-  [mentci-lib](https://github.com/LiGoldragon/mentci-lib)
+  mentci-lib
 
 ## Status
 

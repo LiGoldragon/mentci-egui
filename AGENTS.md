@@ -4,7 +4,7 @@ You **MUST** read AGENTS.md at `github:ligoldragon/lore` — the workspace contr
 
 ## Repo role
 
-The first incarnation of the mentci interaction surface — a thin egui shell atop [mentci-lib](https://github.com/LiGoldragon/mentci-lib).
+The first incarnation of the mentci interaction surface — a thin egui shell atop mentci-lib.
 
 The library carries every piece of application logic (workbench state, view snapshots, schema-aware action flows, dual-daemon connection management). This crate **renders** the snapshots and **forwards** gestures back. That's all.
 
