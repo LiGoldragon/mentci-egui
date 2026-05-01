@@ -11,7 +11,7 @@ events back. Linux + Mac first-class.
 See [`ARCHITECTURE.md`](ARCHITECTURE.md) and the design
 report [mentci/reports/111](https://github.com/LiGoldragon/mentci/blob/main/reports/111-first-mentci-ui-introspection-2026-04-29.md).
 
-Project intent: [mentci/INTENTION.md](https://github.com/LiGoldragon/mentci/blob/main/INTENTION.md).
+Project intent: [lore/INTENTION.md](https://github.com/LiGoldragon/lore/blob/main/INTENTION.md).
 Project-wide architecture: [criome/ARCHITECTURE.md](https://github.com/LiGoldragon/criome/blob/main/ARCHITECTURE.md).
 
 ## Status

@@ -95,7 +95,7 @@ All bodies are `todo!()` skeleton-as-design.
 ## Cross-cutting context
 
 - Project intent:
-  [mentci/INTENTION.md](https://github.com/LiGoldragon/mentci/blob/main/INTENTION.md)
+  [lore/INTENTION.md](https://github.com/LiGoldragon/lore/blob/main/INTENTION.md)
 - Project-wide architecture:
   [criome/ARCHITECTURE.md](https://github.com/LiGoldragon/criome/blob/main/ARCHITECTURE.md)
 - The first design report:
