@@ -8,8 +8,7 @@ The library carries every piece of application logic; this
 crate renders what mentci-lib produces and forwards user
 events back. Linux + Mac first-class.
 
-See `ARCHITECTURE.md` and the design
-report workspace/reports/111.
+See `ARCHITECTURE.md`.
 
 Project intent: lore/INTENTION.md.
 Project-wide architecture: criome/ARCHITECTURE.md.
