@@ -11,9 +11,9 @@ says what the psyche wants it to BE.*
 `WorkbenchView` snapshots, captures gestures, executes library `Cmd`
 values, and keeps application logic out of the GUI crate.
 
-## Menchie Approval Surface
+## Mentci Approval Surface
 
-Menchie is becoming the psyche-facing criome approval component: a
+Mentci is becoming the psyche-facing criome approval component: a
 daemon plus TUI/CLI approval surface for escalated criome questions.
 `mentci-egui` is one possible client shell for that approval surface, not
 the owner of the approval logic. The question queue, suggested answer,
@@ -29,6 +29,6 @@ dispatches only.
 - NOTA text is a human/CLI projection. Component communication stays
   typed binary through the daemon/client boundary.
 
-*Source statements live in Spirit, especially the Menchie approval
+*Source statements live in Spirit, especially the Mentci approval
 surface decision and the workspace thin-shell discipline captured in
 `mentci-lib` intent.*
