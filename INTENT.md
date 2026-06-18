@@ -15,11 +15,13 @@ values, and keeps application logic out of the GUI crate.
 
 Mentci is becoming the psyche-facing criome approval component: a
 daemon-owned programmable UI surface for escalated criome questions.
+The full component shape is the future `mentci` daemon repository plus
+the `signal-mentci` and `meta-signal-mentci` contract repositories.
 `mentci-egui` is one possible client shell for that surface, not the
-owner of approval logic or durable state. The question queue, suggested
-answer, context, response state, and subscription model live in
-`mentci-lib` and the future Mentci daemon; this crate paints and
-dispatches only.
+owner of approval logic, wire vocabulary, daemon lifecycle, or durable
+state. The question queue, suggested answer, context, response state,
+and subscription model live in `mentci-lib` and the future Mentci
+daemon; this crate paints and dispatches only.
 
 ## Constraints
 

@@ -1,7 +1,8 @@
 # ARCHITECTURE — mentci-egui
 
-The first incarnation of the **mentci** interaction surface.
-A thin egui shell atop mentci-lib.
+The first egui client for the **Mentci** interaction surface. A thin
+shell atop mentci-lib and, once the daemon exists, a subscriber of
+daemon-owned Mentci state.
 
 ## Role
 
@@ -15,8 +16,11 @@ things:
 3. Captures user gestures and forwards them as `UserEvent`s
    back to mentci-lib.
 
-The shell never holds application state. State lives in
-mentci-lib. The shell is rendering + input.
+The shell never owns application state, wire vocabulary, or durable
+state. Shared state-machine logic lives in mentci-lib; canonical
+runtime state will live in the future `mentci` daemon, whose component
+triad is `mentci` + `signal-mentci` + `meta-signal-mentci`. This shell
+is rendering + input.
 
 ```
                     user
@@ -35,13 +39,22 @@ mentci-lib. The shell is rendering + input.
            ┌─────────────────────┐
            │     mentci-lib      │
            │                     │
-           │  state + view +     │
-           │  update + cmds      │
-           └──┬──────────────┬───┘
-              │              │
-       signal │              │ signal
-              ▼              ▼
-          criome      nexus-daemon
+           │  shared state +     │
+           │  view + update +    │
+           │  cmds               │
+           └────────┬────────────┘
+                    │ daemon/client protocol
+                    ▼
+           ┌─────────────────────┐
+           │ mentci component    │
+           │                     │
+           │ mentci daemon       │
+           │ signal-mentci       │
+           │ meta-signal-mentci  │
+           └────────┬────────────┘
+                    │
+                    ▼
+                 criome
 ```
 
 ## Boundaries
@@ -63,6 +76,10 @@ Does not own:
 - Application logic (lives in mentci-lib).
 - Schema knowledge (lives in mentci-lib).
 - Connection state machines (lives in mentci-lib).
+- Mentci wire contracts (future `signal-mentci` and
+  `meta-signal-mentci`).
+- Daemon lifecycle, sockets, persistence, and key-unlock flow (future
+  `mentci` daemon).
 - Theme record interpretation (lives in mentci-lib;
   produces semantic-intent values; this shell maps them to
   egui `Visuals`).
@@ -105,5 +122,7 @@ All bodies are `todo!()` skeleton-as-design.
 
 ## Status
 
-**Skeleton-as-design.** First running window lands once
-mentci-lib's `view`/`update` functions fill in.
+**Thin client pending daemon.** The crate compiles against the current
+mentci-lib state model. It will become an egui client of the future
+`mentci` daemon once the component triad and daemon/client protocol
+exist.
