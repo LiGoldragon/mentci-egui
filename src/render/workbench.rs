@@ -14,11 +14,7 @@ use mentci_lib::{UserEvent, WorkbenchView};
 
 /// Paint the workbench. Captured user events accumulate in
 /// `out_events`.
-pub fn workbench(
-    ctx: &egui::Context,
-    view: &WorkbenchView,
-    out_events: &mut Vec<UserEvent>,
-) {
+pub fn workbench(ctx: &egui::Context, view: &WorkbenchView, out_events: &mut Vec<UserEvent>) {
     // Header (top, always).
     egui::TopBottomPanel::top("header").show(ctx, |ui| {
         crate::render::header::header(ui, &view.header, out_events);

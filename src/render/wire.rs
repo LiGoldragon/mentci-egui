@@ -1,14 +1,10 @@
 //! Wire pane — every signal frame seen on this connection,
 //! at typed-variant level. User-toggled.
 
-use mentci_lib::wire::WireView;
 use mentci_lib::UserEvent;
+use mentci_lib::wire::WireView;
 
-pub fn wire(
-    ui: &mut egui::Ui,
-    view: &WireView,
-    out_events: &mut Vec<UserEvent>,
-) {
+pub fn wire(ui: &mut egui::Ui, view: &WireView, out_events: &mut Vec<UserEvent>) {
     ui.horizontal(|ui| {
         ui.heading("WIRE");
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {

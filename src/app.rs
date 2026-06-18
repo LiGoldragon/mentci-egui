@@ -20,10 +20,8 @@
 //!
 //! The shell is the runtime; the library is the model.
 
-use mentci_lib::connection::driver::{
-    spawn_driver, ConnectionHandle, DaemonRole, DriverCmd,
-};
 use mentci_lib::connection::DaemonStatus;
+use mentci_lib::connection::driver::{ConnectionHandle, DaemonRole, DriverCmd, spawn_driver};
 use mentci_lib::{Cmd, EngineEvent, UserEvent, WorkbenchState};
 use std::path::PathBuf;
 use tokio::runtime::Runtime;
@@ -128,7 +126,7 @@ impl MentciEguiApp {
             }
             Cmd::SendCriome { frame } => {
                 if let Some(h) = self.criome_handle.as_ref() {
-                    let _ = h.cmds_tx.send(DriverCmd::SendFrame(frame));
+                    let _ = h.cmds_tx.send(DriverCmd::SendFrame(Box::new(frame)));
                 } else {
                     return Err(crate::error::Error::Lib(
                         mentci_lib::Error::CriomeDisconnected,
@@ -137,12 +135,17 @@ impl MentciEguiApp {
             }
             Cmd::SendNexus { frame } => {
                 if let Some(h) = self.nexus_handle.as_ref() {
-                    let _ = h.cmds_tx.send(DriverCmd::SendFrame(frame));
+                    let _ = h.cmds_tx.send(DriverCmd::SendFrame(Box::new(frame)));
                 } else {
                     return Err(crate::error::Error::Lib(
                         mentci_lib::Error::NexusDisconnected,
                     ));
                 }
+            }
+            Cmd::NotifyApproval { .. } | Cmd::SubmitApproval { .. } => {
+                // The TUI/status-bar/email clients will handle these
+                // when the approval surface is wired. The shell still
+                // accepts the commands so the library model can advance.
             }
             Cmd::RenderViaNexus { .. } | Cmd::SetTimer { .. } => {
                 // Real wiring lands as the corresponding wire

@@ -4,15 +4,11 @@
 //! explicitly. Auto-reconnect is rejected by design — the user
 //! sees why a daemon disconnected and reconnects deliberately.
 
+use mentci_lib::UserEvent;
 use mentci_lib::connection::{ConnectionView, DaemonStatus};
 use mentci_lib::view::HeaderView;
-use mentci_lib::UserEvent;
 
-pub fn header(
-    ui: &mut egui::Ui,
-    view: &HeaderView,
-    out_events: &mut Vec<UserEvent>,
-) {
+pub fn header(ui: &mut egui::Ui, view: &HeaderView, out_events: &mut Vec<UserEvent>) {
     ui.horizontal(|ui| {
         connection_chip(ui, &view.criome, out_events, ChipDaemon::Criome);
         ui.separator();
@@ -22,10 +18,7 @@ pub fn header(
 
         // Right-aligned toggles.
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            if ui
-                .selectable_label(view.tweaks_open, "⌗ tweaks")
-                .clicked()
-            {
+            if ui.selectable_label(view.tweaks_open, "⌗ tweaks").clicked() {
                 out_events.push(UserEvent::ToggleTweaksPane);
             }
             if ui
@@ -73,9 +66,7 @@ fn connection_chip(
         response.on_hover_text(note);
     }
 
-    if matches!(cv.status, DaemonStatus::Disconnected)
-        && ui.small_button("reconnect").clicked()
-    {
+    if matches!(cv.status, DaemonStatus::Disconnected) && ui.small_button("reconnect").clicked() {
         out_events.push(match daemon {
             ChipDaemon::Criome => UserEvent::ReconnectCriome,
             ChipDaemon::Nexus => UserEvent::ReconnectNexus,

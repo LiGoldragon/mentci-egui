@@ -29,9 +29,7 @@ fn main() -> eframe::Result<()> {
     eframe::run_native(
         "mentci",
         native_options,
-        Box::new(move |_cc| {
-            Box::new(MentciEguiApp::new(default_principal(), tokio_runtime))
-        }),
+        Box::new(move |_cc| Box::new(MentciEguiApp::new(default_principal(), tokio_runtime))),
     )
 }
 

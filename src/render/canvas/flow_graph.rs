@@ -5,19 +5,15 @@
 //! Drag gestures (drag-new-box, drag-wire) emit UserEvents
 //! back through `out_events`.
 
+use mentci_lib::UserEvent;
 use mentci_lib::canvas::flow_graph::{
     EdgeStateIntent, FlowGraphView, KindGlyph, NodeStateIntent, RenderedEdge, RenderedNode,
 };
-use mentci_lib::UserEvent;
 
 const NODE_W: f32 = 120.0;
 const NODE_H: f32 = 60.0;
 
-pub fn paint(
-    ui: &mut egui::Ui,
-    view: &FlowGraphView,
-    out_events: &mut Vec<UserEvent>,
-) {
+pub fn paint(ui: &mut egui::Ui, view: &FlowGraphView, out_events: &mut Vec<UserEvent>) {
     // Title + add-node affordance at top.
     ui.horizontal(|ui| {
         ui.label(format!("graph: {}", view.graph.title));
@@ -31,8 +27,7 @@ pub fn paint(
 
     // Allocate the full remaining rect for the canvas.
     let avail = ui.available_size();
-    let (rect, response) =
-        ui.allocate_exact_size(avail, egui::Sense::click_and_drag());
+    let (rect, response) = ui.allocate_exact_size(avail, egui::Sense::click_and_drag());
     let painter = ui.painter_at(rect);
 
     // Background.
@@ -109,10 +104,8 @@ fn paint_edge(
         Some(n) => n,
         None => return,
     };
-    let p_from =
-        canvas.left_top() + egui::vec2(from.at.0 + NODE_W / 2.0, from.at.1 + NODE_H / 2.0);
-    let p_to =
-        canvas.left_top() + egui::vec2(to.at.0 + NODE_W / 2.0, to.at.1 + NODE_H / 2.0);
+    let p_from = canvas.left_top() + egui::vec2(from.at.0 + NODE_W / 2.0, from.at.1 + NODE_H / 2.0);
+    let p_to = canvas.left_top() + egui::vec2(to.at.0 + NODE_W / 2.0, to.at.1 + NODE_H / 2.0);
 
     let stroke_colour = edge_colour(edge.state_intent);
     painter.line_segment([p_from, p_to], egui::Stroke::new(1.5, stroke_colour));
@@ -130,10 +123,7 @@ fn paint_edge(
 
 fn node_colours(intent: NodeStateIntent) -> (egui::Color32, egui::Color32) {
     match intent {
-        NodeStateIntent::Stable => (
-            egui::Color32::from_gray(48),
-            egui::Color32::from_gray(120),
-        ),
+        NodeStateIntent::Stable => (egui::Color32::from_gray(48), egui::Color32::from_gray(120)),
         NodeStateIntent::Pending => (
             egui::Color32::from_rgb(60, 50, 30),
             egui::Color32::from_rgb(220, 180, 90),

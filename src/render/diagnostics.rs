@@ -1,14 +1,10 @@
 //! Diagnostics pane — chronological list of validation
 //! outcomes that aren't `Ok`.
 
-use mentci_lib::diagnostics::DiagnosticsView;
 use mentci_lib::UserEvent;
+use mentci_lib::diagnostics::DiagnosticsView;
 
-pub fn diagnostics(
-    ui: &mut egui::Ui,
-    view: &DiagnosticsView,
-    out_events: &mut Vec<UserEvent>,
-) {
+pub fn diagnostics(ui: &mut egui::Ui, view: &DiagnosticsView, out_events: &mut Vec<UserEvent>) {
     ui.horizontal(|ui| {
         ui.heading(format!("⚠ DIAGNOSTICS ({})", view.entries.len()));
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {

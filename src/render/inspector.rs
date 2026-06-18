@@ -1,13 +1,9 @@
 //! Inspector pane — selected slot detail + history.
 
-use mentci_lib::inspector::InspectorView;
 use mentci_lib::UserEvent;
+use mentci_lib::inspector::InspectorView;
 
-pub fn inspector(
-    ui: &mut egui::Ui,
-    view: &InspectorView,
-    _out_events: &mut Vec<UserEvent>,
-) {
+pub fn inspector(ui: &mut egui::Ui, view: &InspectorView, _out_events: &mut Vec<UserEvent>) {
     match &view.focused {
         None => {
             ui.label("(no selection)");

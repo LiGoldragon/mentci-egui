@@ -1,15 +1,11 @@
 //! Constructor flow rendering — modal/in-place editors per
 //! verb-flow.
 
+use mentci_lib::UserEvent;
 use mentci_lib::constructor::ConstructorView;
 use mentci_lib::event::ConstructorField;
-use mentci_lib::UserEvent;
 
-pub fn constructor(
-    ctx: &egui::Context,
-    view: &ConstructorView,
-    out_events: &mut Vec<UserEvent>,
-) {
+pub fn constructor(ctx: &egui::Context, view: &ConstructorView, out_events: &mut Vec<UserEvent>) {
     egui::Window::new(title_for(view))
         .collapsible(false)
         .resizable(false)
