@@ -14,10 +14,11 @@ values, and keeps application logic out of the GUI crate.
 ## Mentci Approval Surface
 
 Mentci is becoming the psyche-facing criome approval component: a
-daemon plus TUI/CLI approval surface for escalated criome questions.
-`mentci-egui` is one possible client shell for that approval surface, not
-the owner of the approval logic. The question queue, suggested answer,
-context, and response state live in `mentci-lib`; this crate paints and
+daemon-owned programmable UI surface for escalated criome questions.
+`mentci-egui` is one possible client shell for that surface, not the
+owner of approval logic or durable state. The question queue, suggested
+answer, context, response state, and subscription model live in
+`mentci-lib` and the future Mentci daemon; this crate paints and
 dispatches only.
 
 ## Constraints

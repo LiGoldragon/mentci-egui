@@ -142,7 +142,11 @@ impl MentciEguiApp {
                     ));
                 }
             }
-            Cmd::NotifyApproval { .. } | Cmd::SubmitApproval { .. } => {
+            Cmd::NotifyApproval { .. }
+            | Cmd::PublishApprovalUpdates { .. }
+            | Cmd::ConfirmApprovalSubscription { .. }
+            | Cmd::ConfirmApprovalUnsubscription { .. }
+            | Cmd::SubmitApproval { .. } => {
                 // The TUI/status-bar/email clients will handle these
                 // when the approval surface is wired. The shell still
                 // accepts the commands so the library model can advance.
