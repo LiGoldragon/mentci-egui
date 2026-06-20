@@ -895,7 +895,7 @@ dependencies = [
 [[package]]
 name = "criome"
 version = "0.2.0"
-source = "git+https://github.com/LiGoldragon/criome?branch=main#6a5e797a41f0f252216827325abe120e6013f0ea"
+source = "git+https://github.com/LiGoldragon/criome?branch=main#68b92c66de73ee95274299ede602d6ec33f2dd51"
 dependencies = [
  "blake3",
  "blst",
@@ -1182,7 +1182,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2120,7 +2120,7 @@ dependencies = [
 [[package]]
 name = "mentci"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/mentci?branch=main#b58c51296ff7038e2535a04af3bf8144c4f28e7d"
+source = "git+https://github.com/LiGoldragon/mentci?branch=main#f5e17af000a5f08783903f8dc09f068dd7277f31"
 dependencies = [
  "criome",
  "kameo",
@@ -2165,7 +2165,7 @@ dependencies = [
 [[package]]
 name = "meta-signal-mentci"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/meta-signal-mentci?branch=main#74283470cca65f6fc621d35857154bf19770c142"
+source = "git+https://github.com/LiGoldragon/meta-signal-mentci?branch=main#42222f306e71e189f80619ff194429f1bb21aff1"
 dependencies = [
  "rkyv",
  "schema-rust-next",
@@ -2301,7 +2301,7 @@ checksum = "2bf50223579dc7cdcfb3bfcacf7069ff68243f8c363f62ffa99cf000a6b9c451"
 [[package]]
 name = "nota-next"
 version = "0.5.0"
-source = "git+https://github.com/LiGoldragon/nota-next.git?branch=main#7426a6a7d60d6e37ac40df4ecc98717af58129f8"
+source = "git+https://github.com/LiGoldragon/nota-next.git?branch=main#c43d04a159e90314a0094b61ace66053371cc247"
 dependencies = [
  "nota-next-derive",
  "rkyv",
@@ -2310,7 +2310,7 @@ dependencies = [
 [[package]]
 name = "nota-next-derive"
 version = "0.3.0"
-source = "git+https://github.com/LiGoldragon/nota-next.git?branch=main#7426a6a7d60d6e37ac40df4ecc98717af58129f8"
+source = "git+https://github.com/LiGoldragon/nota-next.git?branch=main#c43d04a159e90314a0094b61ace66053371cc247"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2974,7 +2974,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.12.1",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -3416,7 +3416,7 @@ dependencies = [
  "getrandom 0.4.2",
  "once_cell",
  "rustix 1.1.4",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

@@ -2,8 +2,8 @@ use mentci::configuration::DaemonConfiguration;
 use mentci::daemon::Daemon;
 use mentci_egui::daemon_client::{DaemonClient, SocketKind};
 use meta_signal_mentci::{
-    ComponentKind, MentciDaemonConfiguration, NotificationClient, PersonaIdentity, PersonaKeyLabel,
-    PersonaName, StandardSocket,
+    ComponentKind, ComponentSocket, ComponentSocketKind, MentciDaemonConfiguration,
+    NotificationClient, PersonaIdentity, PersonaKeyLabel, PersonaName, StandardSocket,
 };
 
 #[test]
@@ -12,8 +12,16 @@ fn daemon_client_observes_live_mentci_daemon_as_nota() {
     let mentci_socket = directory.path().join("mentci.socket");
     let criome_socket = directory.path().join("criome.socket");
     let configuration = DaemonConfiguration::new(MentciDaemonConfiguration::new(
-        StandardSocket::unix(mentci_socket.display().to_string()),
-        StandardSocket::unix(criome_socket.display().to_string()),
+        vec![
+            ComponentSocket::new(
+                ComponentSocketKind::Mentci,
+                StandardSocket::unix(mentci_socket.display().to_string()),
+            ),
+            ComponentSocket::new(
+                ComponentSocketKind::MetaCriome,
+                StandardSocket::unix(criome_socket.display().to_string()),
+            ),
+        ],
         PersonaIdentity::new(
             PersonaName::new("psyche"),
             ComponentKind::Persona,
