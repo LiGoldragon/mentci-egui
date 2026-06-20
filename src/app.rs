@@ -24,7 +24,10 @@ use mentci_lib::connection::DaemonStatus;
 use mentci_lib::connection::driver::{ConnectionHandle, DaemonRole, DriverCmd, spawn_driver};
 use mentci_lib::{Cmd, EngineEvent, UserEvent, WorkbenchState};
 use std::path::PathBuf;
+use std::sync::mpsc;
 use tokio::runtime::Runtime;
+
+use crate::daemon_client::{DaemonClient, DaemonTranscriptEntry};
 
 /// Default UDS path for criome's signal listener.
 const CRIOME_SOCKET: &str = "/tmp/criome.sock";
@@ -45,10 +48,16 @@ pub struct MentciEguiApp {
     pub tokio_runtime: Runtime,
     /// Has the auto-connect logic run yet?
     pub bootstrap_done: bool,
+    pub daemon_client: DaemonClient,
+    pub daemon_transcript: Vec<DaemonTranscriptEntry>,
+    pub daemon_replies: mpsc::Receiver<crate::error::Result<DaemonTranscriptEntry>>,
+    pub daemon_reply_sender: mpsc::Sender<crate::error::Result<DaemonTranscriptEntry>>,
+    pub ordinary_request_in_flight: bool,
 }
 
 impl MentciEguiApp {
     pub fn new(principal: signal::Slot<signal::Principal>, tokio_runtime: Runtime) -> Self {
+        let (daemon_reply_sender, daemon_replies) = mpsc::channel();
         Self {
             workbench: WorkbenchState::new(principal),
             pending_cmds: Vec::new(),
@@ -56,18 +65,104 @@ impl MentciEguiApp {
             nexus_handle: None,
             tokio_runtime,
             bootstrap_done: false,
+            daemon_client: DaemonClient::from_environment(),
+            daemon_transcript: Vec::new(),
+            daemon_replies,
+            daemon_reply_sender,
+            ordinary_request_in_flight: false,
         }
     }
 
-    /// First-frame bootstrap — auto-attempt both connections
-    /// so the user sees the lifecycle without having to click.
+    /// First-frame bootstrap — ask the real Mentci daemon for
+    /// a full interface-state projection so the GUI starts as
+    /// a daemon client rather than a blank shell.
     fn bootstrap_if_needed(&mut self) {
         if self.bootstrap_done {
             return;
         }
         self.bootstrap_done = true;
-        self.pending_cmds.push(Cmd::ConnectCriome);
-        self.pending_cmds.push(Cmd::ConnectNexus);
+        self.request_interface_state();
+    }
+
+    fn request_interface_state(&mut self) {
+        if self.ordinary_request_in_flight {
+            return;
+        }
+        self.ordinary_request_in_flight = true;
+        let sender = self.daemon_reply_sender.clone();
+        let client = self.daemon_client.clone();
+        self.tokio_runtime.spawn_blocking(move || {
+            let _ = sender.send(client.observe_interface_state());
+        });
+    }
+
+    fn show_meta_mode(&mut self) {
+        self.daemon_transcript
+            .push(self.daemon_client.meta_mode_placeholder());
+    }
+
+    fn drain_daemon_replies(&mut self) {
+        while let Ok(result) = self.daemon_replies.try_recv() {
+            self.ordinary_request_in_flight = false;
+            match result {
+                Ok(entry) => self.daemon_transcript.push(entry),
+                Err(error) => self.daemon_transcript.push(DaemonTranscriptEntry {
+                    mode: crate::daemon_client::DaemonMode::Ordinary,
+                    operation: "ObserveInterfaceState".to_string(),
+                    socket_path: self.daemon_client.ordinary_socket().clone(),
+                    request_nota: "(ObserveInterfaceState ...)".to_string(),
+                    reply_nota: format!("{error}"),
+                }),
+            }
+        }
+    }
+
+    fn render_daemon_panel(&mut self, ctx: &egui::Context) {
+        egui::TopBottomPanel::bottom("mentci_daemon")
+            .resizable(true)
+            .default_height(220.0)
+            .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    ui.heading("mentci daemon");
+                    ui.label(self.daemon_client.ordinary_socket().display().to_string());
+                    if ui
+                        .add_enabled(
+                            !self.ordinary_request_in_flight,
+                            egui::Button::new("observe"),
+                        )
+                        .clicked()
+                    {
+                        self.request_interface_state();
+                    }
+                    if ui.button("meta").clicked() {
+                        self.show_meta_mode();
+                    }
+                    if self.ordinary_request_in_flight {
+                        ui.spinner();
+                    }
+                });
+                ui.separator();
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    if self.daemon_transcript.is_empty() {
+                        ui.label("(waiting for daemon reply)");
+                    }
+                    for entry in self.daemon_transcript.iter().rev().take(16) {
+                        ui.group(|ui| {
+                            ui.horizontal(|ui| {
+                                ui.strong(entry.mode.label());
+                                ui.label(&entry.operation);
+                                ui.label(entry.socket_path.display().to_string());
+                            });
+                            ui.collapsing("request NOTA", |ui| {
+                                ui.monospace(&entry.request_nota);
+                            });
+                            ui.collapsing("reply NOTA", |ui| {
+                                ui.monospace(&entry.reply_nota);
+                            });
+                        });
+                    }
+                });
+            });
     }
 
     /// Drain any engine events queued by the driver tasks
@@ -165,6 +260,7 @@ impl eframe::App for MentciEguiApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // 0. First-frame bootstrap.
         self.bootstrap_if_needed();
+        self.drain_daemon_replies();
 
         // 1. Drain engine events.
         let events = self.drain_engine_events();
@@ -179,6 +275,7 @@ impl eframe::App for MentciEguiApp {
         // 3. Paint, capturing user gestures.
         let mut user_events: Vec<UserEvent> = Vec::new();
         crate::render::workbench(ctx, &view, &mut user_events);
+        self.render_daemon_panel(ctx);
 
         // 4. Apply each captured user event.
         for ev in user_events {

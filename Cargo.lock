@@ -472,6 +472,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4512299f36f043ab09a583e57bceb5a5aab7a73db1805848e8fef3c9e8c78b3"
 
 [[package]]
+name = "blake3"
+version = "1.8.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0aa83c34e62843d924f905e0f5c866eb1dd6545fc4d719e803d9ba6030371fce"
+dependencies = [
+ "arrayref",
+ "arrayvec",
+ "cc",
+ "cfg-if",
+ "constant_time_eq",
+ "cpufeatures 0.3.0",
+]
+
+[[package]]
 name = "block"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -535,6 +549,18 @@ dependencies = [
  "futures-io",
  "futures-lite 2.6.1",
  "piper",
+]
+
+[[package]]
+name = "blst"
+version = "0.3.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dcdb4c7013139a150f9fc55d123186dbfaba0d912817466282c73ac49e71fb45"
+dependencies = [
+ "cc",
+ "glob",
+ "threadpool",
+ "zeroize",
 ]
 
 [[package]]
@@ -794,6 +820,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "constant_time_eq"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3d52eff69cd5e647efe296129160853a42795992097e8af39800e1060caeea9b"
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -843,12 +875,39 @@ dependencies = [
 ]
 
 [[package]]
+name = "cpufeatures"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b2a41393f66f16b0823bb79094d54ac5fbd34ab292ddafb9a0456ac9f87d201"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "crc32fast"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9481c1c90cbf2ac953f07c8d4a58aa3945c425b7185c9154d67a65e4230da511"
 dependencies = [
  "cfg-if",
+]
+
+[[package]]
+name = "criome"
+version = "0.2.0"
+source = "git+https://github.com/LiGoldragon/criome?branch=main#6a5e797a41f0f252216827325abe120e6013f0ea"
+dependencies = [
+ "blake3",
+ "blst",
+ "kameo",
+ "meta-signal-criome",
+ "rkyv",
+ "sema-engine",
+ "signal-criome",
+ "signal-frame",
+ "thiserror 2.0.18",
+ "tokio",
+ "triad-runtime",
 ]
 
 [[package]]
@@ -944,6 +1003,18 @@ name = "downcast-rs"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "75b325c5dbd37f80359721ad39aca5a29fb04c89279657cffdda8736d0c0b9d2"
+
+[[package]]
+name = "downcast-rs"
+version = "2.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "117240f60069e65410b3ae1bb213295bd828f707b5bec6596a1afc8793ce0cbc"
+
+[[package]]
+name = "dyn-clone"
+version = "1.0.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d0881ea181b1df73ff77ffaaf9c7544ecc11e82fba9b5f27b262a3c73a332555"
 
 [[package]]
 name = "ecolor"
@@ -1241,10 +1312,46 @@ dependencies = [
 ]
 
 [[package]]
+name = "futures"
+version = "0.3.32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b147ee9d1f6d097cef9ce628cd2ee62288d963e16fb287bd9286455b241382d"
+dependencies = [
+ "futures-channel",
+ "futures-core",
+ "futures-executor",
+ "futures-io",
+ "futures-sink",
+ "futures-task",
+ "futures-util",
+]
+
+[[package]]
+name = "futures-channel"
+version = "0.3.32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "07bbe89c50d7a535e539b8c17bc0b49bdb77747034daa8087407d655f3f7cc1d"
+dependencies = [
+ "futures-core",
+ "futures-sink",
+]
+
+[[package]]
 name = "futures-core"
 version = "0.3.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7e3450815272ef58cec6d564423f6e755e25379b217b0bc688e295ba24df6b1d"
+
+[[package]]
+name = "futures-executor"
+version = "0.3.32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "baf29c38818342a3b26b5b923639e7b1f4a61fc5e76102d4b1981c6dc7a7579d"
+dependencies = [
+ "futures-core",
+ "futures-task",
+ "futures-util",
+]
 
 [[package]]
 name = "futures-io"
@@ -1281,6 +1388,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "futures-macro"
+version = "0.3.32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e835b70203e41293343137df5c0664546da5745f82ec9b84d40be8336958447b"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
+]
+
+[[package]]
 name = "futures-sink"
 version = "0.3.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1298,8 +1416,10 @@ version = "0.3.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "389ca41296e6190b48053de0321d02a77f32f8a5d2461dd38762c0593805c6d6"
 dependencies = [
+ "futures-channel",
  "futures-core",
  "futures-io",
+ "futures-macro",
  "futures-sink",
  "futures-task",
  "memchr",
@@ -1373,6 +1493,12 @@ dependencies = [
  "log",
  "xml-rs",
 ]
+
+[[package]]
+name = "glob"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
 
 [[package]]
 name = "glow"
@@ -1819,6 +1945,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "kameo"
+version = "0.20.0"
+source = "git+https://github.com/LiGoldragon/kameo.git?branch=main#f491b45d7dcb55e5837eddde3d5d7ca8ceaa9f01"
+dependencies = [
+ "downcast-rs 2.0.2",
+ "dyn-clone",
+ "futures",
+ "kameo_macros",
+ "serde",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "kameo_macros"
+version = "0.20.0"
+source = "git+https://github.com/LiGoldragon/kameo.git?branch=main#f491b45d7dcb55e5837eddde3d5d7ca8ceaa9f01"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
+]
+
+[[package]]
 name = "khronos-egl"
 version = "6.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1967,13 +2118,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "mentci"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/mentci?branch=main#b58c51296ff7038e2535a04af3bf8144c4f28e7d"
+dependencies = [
+ "criome",
+ "kameo",
+ "meta-signal-criome",
+ "meta-signal-mentci",
+ "rkyv",
+ "signal-criome",
+ "signal-frame",
+ "signal-mentci",
+ "thiserror 2.0.18",
+ "tokio",
+]
+
+[[package]]
 name = "mentci-egui"
 version = "0.1.0"
 dependencies = [
  "eframe",
  "egui",
+ "mentci",
  "mentci-lib",
+ "meta-signal-mentci",
+ "nota-next",
  "signal",
+ "signal-frame",
+ "signal-mentci",
+ "tempfile",
  "thiserror 2.0.18",
  "tokio",
 ]
@@ -1987,6 +2161,29 @@ dependencies = [
  "signal",
  "thiserror 2.0.18",
  "tokio",
+]
+
+[[package]]
+name = "meta-signal-criome"
+version = "0.2.0"
+source = "git+https://github.com/LiGoldragon/meta-signal-criome?branch=main#4940e4b13c573b72bb0492ae53510244f92d7653"
+dependencies = [
+ "rkyv",
+ "schema-rust-next",
+ "signal-criome",
+ "signal-frame",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "meta-signal-mentci"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/meta-signal-mentci?branch=main#74283470cca65f6fc621d35857154bf19770c142"
+dependencies = [
+ "rkyv",
+ "schema-rust-next",
+ "signal-frame",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
@@ -2140,6 +2337,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "num_cpus"
+version = "1.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "91df4bbde75afed763b708b7eee1e8e7651e02d97f6d5dd763e89367e957b23b"
+dependencies = [
+ "hermit-abi 0.5.2",
+ "libc",
 ]
 
 [[package]]
@@ -2622,6 +2829,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "20675572f6f24e9e76ef639bc5552774ed45f1c30e2951e1e99c59888861c539"
 
 [[package]]
+name = "redb"
+version = "4.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8e925444704b5f17d32bf42f5b6e2df050bceebc3dcd6e71cc73dafe8092e839"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "redox_syscall"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2790,6 +3006,44 @@ dependencies = [
 ]
 
 [[package]]
+name = "schema-cc"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/schema-next.git?branch=main#4b7e830a7001708737a617bd8eedac8002cc1fc6"
+dependencies = [
+ "nota-next",
+ "prettyplease",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "schema-next"
+version = "0.2.0"
+source = "git+https://github.com/LiGoldragon/schema-next.git?branch=main#4b7e830a7001708737a617bd8eedac8002cc1fc6"
+dependencies = [
+ "blake3",
+ "nota-next",
+ "rkyv",
+ "schema-cc",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "schema-rust-next"
+version = "0.5.3"
+source = "git+https://github.com/LiGoldragon/schema-rust-next.git?branch=main#90d853c33ade57cfafca5942dd0790a3302a605f"
+dependencies = [
+ "prettyplease",
+ "proc-macro2",
+ "quote",
+ "schema-next",
+ "syn 2.0.117",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "scoped-tls"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2812,6 +3066,29 @@ dependencies = [
  "memmap2",
  "smithay-client-toolkit 0.18.1",
  "tiny-skia",
+]
+
+[[package]]
+name = "sema"
+version = "0.1.1"
+source = "git+https://github.com/LiGoldragon/sema.git?branch=main#b13ed436e7a9af947d8cde03d0f5ff36e9e3d742"
+dependencies = [
+ "redb",
+ "rkyv",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "sema-engine"
+version = "0.6.2"
+source = "git+https://github.com/LiGoldragon/sema-engine.git?branch=main#73eea24b294a2bdcac470111afc387e7ce06608e"
+dependencies = [
+ "blake3",
+ "rkyv",
+ "sema",
+ "signal-frame",
+ "signal-sema",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
@@ -2881,7 +3158,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3bf829a2d51ab4a5ddf1352d8470c140cadc8301b2ae1789db023f01cedd6ba"
 dependencies = [
  "cfg-if",
- "cpufeatures",
+ "cpufeatures 0.2.17",
  "digest",
 ]
 
@@ -2904,9 +3181,44 @@ dependencies = [
 ]
 
 [[package]]
+name = "signal-criome"
+version = "0.2.0"
+source = "git+https://github.com/LiGoldragon/signal-criome?branch=main#ff9ac192b21cc47a37a2722075bf7d76406943fe"
+dependencies = [
+ "blake3",
+ "blst",
+ "rkyv",
+ "schema-rust-next",
+ "signal-frame",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "signal-derive"
 version = "0.1.0"
 source = "git+https://github.com/LiGoldragon/signal-derive.git?branch=main#5d6c80c498920d8b6e556071c4778b54fda9bb26"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
+]
+
+[[package]]
+name = "signal-frame"
+version = "0.2.1"
+source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#c75053210b1b1e0d22833f0cfc461363213cf860"
+dependencies = [
+ "nota-next",
+ "paste",
+ "rkyv",
+ "signal-frame-macros",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "signal-frame-macros"
+version = "0.1.1"
+source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#c75053210b1b1e0d22833f0cfc461363213cf860"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2921,6 +3233,18 @@ checksum = "c4db69cba1110affc0e9f7bcd48bbf87b3f4fc7c61fc9155afd4c469eb3d6c1b"
 dependencies = [
  "errno",
  "libc",
+]
+
+[[package]]
+name = "signal-mentci"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/signal-mentci?branch=main#c187a611322d917580284149f79b3d2a6773c7a5"
+dependencies = [
+ "nota-next",
+ "rkyv",
+ "schema-rust-next",
+ "signal-frame",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
@@ -3181,6 +3505,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "threadpool"
+version = "1.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d050e60b33d41c19108b32cea32164033a9013fe3b46cbd4457559bfbf77afaa"
+dependencies = [
+ "num_cpus",
+]
+
+[[package]]
 name = "tiny-skia"
 version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3242,6 +3575,7 @@ dependencies = [
  "pin-project-lite",
  "socket2 0.6.3",
  "tokio-macros",
+ "tracing",
  "windows-sys 0.61.2",
 ]
 
@@ -3333,6 +3667,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db97caf9d906fbde555dd62fa95ddba9eecfd14cb388e4f491a66d74cd5fb79a"
 dependencies = [
  "once_cell",
+]
+
+[[package]]
+name = "triad-runtime"
+version = "0.6.1"
+source = "git+https://github.com/LiGoldragon/triad-runtime.git?branch=main#60e0ed7c753d35561458586ff7d870dcadf47ea5"
+dependencies = [
+ "kameo",
+ "rkyv",
+ "rustix 1.1.4",
+ "signal-frame",
+ "thiserror 2.0.18",
+ "tokio",
 ]
 
 [[package]]
@@ -3561,7 +3908,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2857dd20b54e916ec7253b3d6b4d5c4d7d4ca2c33c2e11c6c76a99bd8744755d"
 dependencies = [
  "cc",
- "downcast-rs",
+ "downcast-rs 1.2.1",
  "rustix 1.1.4",
  "scoped-tls",
  "smallvec",
@@ -4530,6 +4877,26 @@ dependencies = [
  "quote",
  "syn 2.0.117",
  "synstructure",
+]
+
+[[package]]
+name = "zeroize"
+version = "1.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e13c156562582aa81c60cb29407084cdb54c4164760106ab78e6c5b0858cf64e"
+dependencies = [
+ "zeroize_derive",
+]
+
+[[package]]
+name = "zeroize_derive"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3c50655cbb0fe3fc43170059e702f1ce5e19b84cec58dc87b037a09935c2f328"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
 ]
 
 [[package]]

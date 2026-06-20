@@ -23,13 +23,25 @@ state. The question queue, suggested answer, context, response state,
 and subscription model live in `mentci-lib` and the future Mentci
 daemon; this crate paints and dispatches only.
 
+## Daemon-Connected GUI
+
+Spirit record `xlrk` clarifies the revived GUI concept: `mentci-egui`
+is the interactive client for the `mentci` daemon. It connects over the
+ordinary `signal-mentci` contract, exposes a root-like meta mode for
+privileged `meta-signal-mentci` operations as that daemon surface lands,
+and renders typed replies or unknown inner objects through NOTA text as
+the first fallback before purpose-built panes exist. The full client is
+long-lived and subscription-oriented; it should receive daemon events as
+they arrive rather than feeling like the single synchronous CLI path.
+
 ## Constraints
 
 - Keep the shell thin. Application state, constructor flows, daemon
   connection state, and approval-flow logic live in `mentci-lib`.
 - The shell owns egui/eframe integration, rendering, gesture capture,
   and command execution only.
-- NOTA text is a human/CLI projection. Component communication stays
+- NOTA text is a human/client projection and acceptable GUI fallback for
+  typed values without dedicated panes. Component communication stays
   typed binary through the daemon/client boundary.
 
 *Source statements live in Spirit, especially the Mentci approval

@@ -70,6 +70,9 @@ Owns:
 - Cmd dispatch — when mentci-lib returns `Cmd::SendCriome`
   etc., this shell sends the actual signal frame on the
   socket.
+- A daemon transcript panel that sends real `signal-mentci` frames to
+  `mentci-daemon` and renders request/reply payloads as NOTA while
+  purpose-built panes are still growing.
 
 Does not own:
 
@@ -92,6 +95,8 @@ src/
 │                       eframe loop
 ├── app.rs            — eframe::App impl: each frame derives
 │                       view, dispatches paints, executes cmds
+├── daemon_client.rs  — synchronous `signal-mentci` Unix-socket client
+│                       used by the GUI transcript panel
 ├── error.rs          — Error enum
 └── render/
     ├── mod.rs        — render dispatcher
@@ -122,7 +127,10 @@ All bodies are `todo!()` skeleton-as-design.
 
 ## Status
 
-**Thin client pending daemon.** The crate compiles against the current
-mentci-lib state model. It will become an egui client of the future
-`mentci` daemon once the component triad and daemon/client protocol
-exist.
+**First daemon-connected GUI slice.** The crate compiles against the
+current mentci-lib state model and now has a real `signal-mentci`
+ordinary-mode client panel. It sends `ObserveInterfaceState` to a live
+`mentci-daemon` socket and renders the reply as NOTA. Meta mode is
+visible in the UI as the root-like lane, but the daemon does not yet
+expose a live meta socket; startup configuration remains the binary
+`meta-signal-mentci` file.

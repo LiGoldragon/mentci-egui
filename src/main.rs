@@ -7,6 +7,7 @@
 //! on the first frame; the user sees the lifecycle on screen.
 
 mod app;
+mod daemon_client;
 mod error;
 mod render;
 

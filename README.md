@@ -15,9 +15,10 @@ Project-wide architecture: criome/ARCHITECTURE.md.
 
 ## Status
 
-**Skeleton-as-design.** Type signatures pinned; bodies are
-`todo!()`. The first running window lands as mentci-lib's
-core fills in.
+**First daemon-connected slice.** The window runs, sends
+`ObserveInterfaceState` to `mentci-daemon` over `signal-mentci`, and
+renders the request/reply transcript as NOTA. Purpose-built panes grow
+from that typed fallback.
 
 ## License
 
