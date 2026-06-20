@@ -30,17 +30,6 @@ mentci             = { git = "https://github.com/LiGoldragon/mentci", branch = "
 meta-signal-mentci = { git = "https://github.com/LiGoldragon/meta-signal-mentci", branch = "main" }
 tempfile           = "3"
 
-# DESIGNER PROTOTYPE SCAFFOLD (criome-E1 style). Consume the re-founded
-# mentci-lib and its companion signal-mentci readers by local path from the
-# matching feature worktrees until the operator merges both to main, at which
-# point these patches collapse and the plain git sources resolve. Note at
-# integration.
-[patch."https://github.com/LiGoldragon/mentci-lib"]
-mentci-lib = { path = "/home/li/wt/github.com/LiGoldragon/mentci-lib/re-found-on-live-contracts" }
-
-[patch."https://github.com/LiGoldragon/signal-mentci"]
-signal-mentci = { path = "/home/li/wt/github.com/LiGoldragon/signal-mentci/re-found-on-live-contracts" }
-
 [lints.rust]
 unused = "allow"
 dead_code = "allow"
