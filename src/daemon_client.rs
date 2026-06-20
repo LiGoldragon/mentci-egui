@@ -12,8 +12,8 @@ use signal_frame::{
     ExchangeIdentifier, ExchangeLane, LaneSequence, Reply, RequestPayload, SessionEpoch, SubReply,
 };
 use signal_mentci::{
-    InterfaceInterest, InterfaceStateObservation, MentciFrame, MentciFrameBody, MentciRequest,
-    SubscriberName,
+    InterfaceInterest, InterfaceStateObservation, MentciFrame, MentciFrameBody, MentciReply,
+    MentciRequest, SubscriberName,
 };
 
 #[derive(Clone, Debug)]
@@ -85,6 +85,26 @@ impl DaemonClient {
         })
     }
 
+    /// Observe the daemon's interface state and return the TYPED reply so the
+    /// caller can fold it into mentci-lib's `ObservationModel`. The typed
+    /// `MentciReply` is the shared-model input; the NOTA string is only the
+    /// fallback rendering.
+    pub fn observe_interface_state_typed(
+        &self,
+        interest: InterfaceInterest,
+    ) -> crate::error::Result<MentciReply> {
+        let request = MentciRequest::ObserveInterfaceState(InterfaceStateObservation {
+            subscriber: SubscriberName::new("mentci-egui"),
+            interest,
+        });
+        let frame = MentciFrame::new(MentciFrameBody::Request {
+            exchange: self.exchange(),
+            request: request.into_request(),
+        });
+        let reply = self.send_ordinary_frame(&frame)?;
+        self.reply_output(reply)
+    }
+
     pub fn meta_mode_placeholder(&self) -> DaemonTranscriptEntry {
         DaemonTranscriptEntry {
             socket_kind: SocketKind::MetaMentci,
@@ -139,6 +159,27 @@ impl DaemonClient {
                 Reply::Rejected { reason } => Ok(format!("{reason:?}")),
             },
             MentciFrameBody::SubscriptionEvent { event, .. } => Ok(event.to_nota()),
+            other => Err(crate::error::Error::UnexpectedDaemonFrame(format!(
+                "{other:?}"
+            ))),
+        }
+    }
+
+    /// Extract the typed `MentciReply` (the contract `Output`) from a reply
+    /// frame's accepted head — the shape mentci-lib folds into its model.
+    fn reply_output(&self, frame: MentciFrame) -> crate::error::Result<MentciReply> {
+        match frame.into_body() {
+            MentciFrameBody::Reply { reply, .. } => match reply {
+                Reply::Accepted { per_operation, .. } => match per_operation.into_head() {
+                    SubReply::Ok(output) => Ok(output),
+                    other => Err(crate::error::Error::UnexpectedDaemonFrame(format!(
+                        "{other:?}"
+                    ))),
+                },
+                Reply::Rejected { reason } => Err(crate::error::Error::UnexpectedDaemonFrame(
+                    format!("rejected: {reason:?}"),
+                )),
+            },
             other => Err(crate::error::Error::UnexpectedDaemonFrame(format!(
                 "{other:?}"
             ))),

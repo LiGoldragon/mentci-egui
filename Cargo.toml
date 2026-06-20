@@ -15,6 +15,11 @@ path = "src/main.rs"
 nota-next    = { git = "https://github.com/LiGoldragon/nota-next.git", branch = "main" }
 signal-frame = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main", features = ["nota-text"] }
 signal-mentci = { git = "https://github.com/LiGoldragon/signal-mentci", branch = "main", features = ["nota-text"] }
+# Re-founded shared model: the egui shell consumes mentci-lib's ObservationModel
+# (MVU core keyed by component socket) and its NOTA-fallback renderer instead of
+# keeping its own approval/transcript state. This proves mentci-lib is the
+# shared leg of the triad.
+mentci-lib   = { git = "https://github.com/LiGoldragon/mentci-lib", branch = "main", features = ["nota-text"] }
 eframe       = "0.27"
 egui         = "0.27"
 thiserror    = "2"
@@ -24,6 +29,17 @@ tokio        = { version = "1", features = ["rt-multi-thread"] }
 mentci             = { git = "https://github.com/LiGoldragon/mentci", branch = "main" }
 meta-signal-mentci = { git = "https://github.com/LiGoldragon/meta-signal-mentci", branch = "main" }
 tempfile           = "3"
+
+# DESIGNER PROTOTYPE SCAFFOLD (criome-E1 style). Consume the re-founded
+# mentci-lib and its companion signal-mentci readers by local path from the
+# matching feature worktrees until the operator merges both to main, at which
+# point these patches collapse and the plain git sources resolve. Note at
+# integration.
+[patch."https://github.com/LiGoldragon/mentci-lib"]
+mentci-lib = { path = "/home/li/wt/github.com/LiGoldragon/mentci-lib/re-found-on-live-contracts" }
+
+[patch."https://github.com/LiGoldragon/signal-mentci"]
+signal-mentci = { path = "/home/li/wt/github.com/LiGoldragon/signal-mentci/re-found-on-live-contracts" }
 
 [lints.rust]
 unused = "allow"
