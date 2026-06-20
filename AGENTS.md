@@ -4,14 +4,15 @@ You **MUST** read AGENTS.md at `github:ligoldragon/lore` — the workspace contr
 
 ## Repo role
 
-The first incarnation of the mentci interaction surface — a thin egui shell atop mentci-lib.
+The egui client for the mentci daemon.
 
-The library carries every piece of application logic (workbench state, view snapshots, schema-aware action flows, dual-daemon connection management). This crate **renders** the snapshots and **forwards** gestures back. That's all.
-
-Skeleton-as-design today; bodies are `todo!()`.
+The daemon carries approval state, criome bridge logic, subscriptions, and
+wire vocabulary. This crate opens a window, sends typed `signal-mentci`
+requests, and renders daemon replies.
 
 ---
 
 ## Carve-outs worth knowing
 
-- **Keep this shell thin.** When tempted to put logic here, put it in mentci-lib instead.
+- **Keep this shell thin.** When tempted to put approval or state logic here,
+  put it in the mentci daemon instead.

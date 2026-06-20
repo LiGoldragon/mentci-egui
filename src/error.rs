@@ -1,8 +1,4 @@
 //! Typed Error enum for shell-level failures.
-//!
-//! mentci-lib has its own Error enum for application-level
-//! failures; this enum is for shell-level failures (eframe
-//! init, Cmd dispatch errors).
 
 use thiserror::Error;
 
@@ -10,12 +6,6 @@ use thiserror::Error;
 pub enum Error {
     #[error("eframe initialisation failed: {0}")]
     EframeInit(String),
-
-    #[error("cmd dispatch failed: {0}")]
-    CmdDispatch(String),
-
-    #[error("library error: {0}")]
-    Lib(#[from] mentci_lib::Error),
 
     #[error("daemon IO error: {0}")]
     Io(#[from] std::io::Error),

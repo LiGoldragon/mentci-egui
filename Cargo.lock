@@ -2141,24 +2141,11 @@ dependencies = [
  "eframe",
  "egui",
  "mentci",
- "mentci-lib",
  "meta-signal-mentci",
  "nota-next",
- "signal",
  "signal-frame",
  "signal-mentci",
  "tempfile",
- "thiserror 2.0.18",
- "tokio",
-]
-
-[[package]]
-name = "mentci-lib"
-version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/mentci-lib?branch=main#81e852b1e380f83bd0454c6c615cd5bf21ef53b8"
-dependencies = [
- "rkyv",
- "signal",
  "thiserror 2.0.18",
  "tokio",
 ]
@@ -3169,18 +3156,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
-name = "signal"
-version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/signal?branch=main#7cdb0fe8a43988d6b08cd2446aab04c6af2d5f0e"
-dependencies = [
- "nota-next",
- "rkyv",
- "signal-derive",
- "signal-sema",
- "thiserror 2.0.18",
-]
-
-[[package]]
 name = "signal-criome"
 version = "0.2.0"
 source = "git+https://github.com/LiGoldragon/signal-criome?branch=main#ff9ac192b21cc47a37a2722075bf7d76406943fe"
@@ -3191,16 +3166,6 @@ dependencies = [
  "schema-rust-next",
  "signal-frame",
  "thiserror 2.0.18",
-]
-
-[[package]]
-name = "signal-derive"
-version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/signal-derive.git?branch=main#5d6c80c498920d8b6e556071c4778b54fda9bb26"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.117",
 ]
 
 [[package]]
@@ -3252,7 +3217,6 @@ name = "signal-sema"
 version = "0.2.0"
 source = "git+https://github.com/LiGoldragon/signal-sema.git?branch=main#bdd7fe369952cb51e4476f201a3419ae5b35d444"
 dependencies = [
- "nota-next",
  "rkyv",
  "thiserror 2.0.18",
 ]

@@ -1,136 +1,63 @@
 # ARCHITECTURE — mentci-egui
 
-The first egui client for the **Mentci** interaction surface. A thin
-shell atop mentci-lib and, once the daemon exists, a subscriber of
-daemon-owned Mentci state.
+The egui client for the **Mentci** daemon. It is an interactive
+`signal-mentci` client, not an independent workbench runtime.
 
 ## Role
 
-mentci-lib is heavy; this shell is thin. The shell does three
-things:
+`mentci-egui` opens a window, connects to `mentci-daemon`, sends typed
+`signal-mentci` requests, and renders daemon replies. The daemon owns
+approval state, subscriptions, persistence, and the criome bridge.
 
-1. Wraps a [`mentci_lib::WorkbenchState`] and runs the
-   `eframe::App` event loop.
-2. Each frame: derives a `WorkbenchView` snapshot, paints it
-   with egui widgets and Painter primitives.
-3. Captures user gestures and forwards them as `UserEvent`s
-   back to mentci-lib.
-
-The shell never owns application state, wire vocabulary, or durable
-state. Shared state-machine logic lives in mentci-lib; canonical
-runtime state will live in the future `mentci` daemon, whose component
-triad is `mentci` + `signal-mentci` + `meta-signal-mentci`. This shell
-is rendering + input.
-
-```
-                    user
-                     │
-                     │ gestures
-                     ▼
-           ┌─────────────────────┐
-           │   mentci-egui (this)│
-           │                     │
-           │  eframe::App +      │
-           │  egui rendering     │
-           │  per pane           │
-           └────────┬────────────┘
-                    │ UserEvent
-                    ▼
-           ┌─────────────────────┐
-           │     mentci-lib      │
-           │                     │
-           │  shared state +     │
-           │  view + update +    │
-           │  cmds               │
-           └────────┬────────────┘
-                    │ daemon/client protocol
-                    ▼
-           ┌─────────────────────┐
-           │ mentci component    │
-           │                     │
-           │ mentci daemon       │
-           │ signal-mentci       │
-           │ meta-signal-mentci  │
-           └────────┬────────────┘
-                    │
-                    ▼
-                 criome
-```
+The first UI surface is intentionally generic: it shows request and reply
+payloads as NOTA so new daemon objects are visible before dedicated panes
+exist.
 
 ## Boundaries
 
 Owns:
 
-- `eframe::App` impl wrapping mentci-lib state.
-- Per-pane render functions that paint a `WorkbenchView` with
-  egui widgets and the Painter API.
-- Custom canvas painting (flow-graph rendering today; future
-  kinds add render functions in `src/render/canvas/`).
-- Gesture capture → `UserEvent` translation.
-- Cmd dispatch — when mentci-lib returns `Cmd::SendCriome`
-  etc., this shell sends the actual signal frame on the
-  socket.
-- A daemon transcript panel that sends real `signal-mentci` frames to
-  `mentci-daemon` and renders request/reply payloads as NOTA while
-  purpose-built panes are still growing.
+- `eframe::App` lifecycle and egui rendering.
+- A Unix-socket `signal-mentci` client for ordinary daemon requests.
+- A visible meta lane for privileged operations as `meta-signal-mentci`
+  grows a live socket surface.
+- NOTA rendering for typed replies without dedicated widgets.
 
 Does not own:
 
-- Application logic (lives in mentci-lib).
-- Schema knowledge (lives in mentci-lib).
-- Connection state machines (lives in mentci-lib).
-- Mentci wire contracts (future `signal-mentci` and
-  `meta-signal-mentci`).
-- Daemon lifecycle, sockets, persistence, and key-unlock flow (future
-  `mentci` daemon).
-- Theme record interpretation (lives in mentci-lib;
-  produces semantic-intent values; this shell maps them to
-  egui `Visuals`).
+- Approval logic.
+- Criome authorization decisions.
+- Daemon lifecycle, persistence, subscriptions, or notification fan-out.
+- Direct criome or nexus driver connections.
+- The `signal-mentci` or `meta-signal-mentci` wire vocabulary.
 
-## Code map
+## Code Map
 
 ```
 src/
-├── main.rs           — entry; constructs WorkbenchState, runs
-│                       eframe loop
-├── app.rs            — eframe::App impl: each frame derives
-│                       view, dispatches paints, executes cmds
+├── main.rs           — entry; constructs tokio runtime and eframe window
+├── app.rs            — daemon-first egui app and transcript view
 ├── daemon_client.rs  — synchronous `signal-mentci` Unix-socket client
-│                       used by the GUI transcript panel
 ├── error.rs          — Error enum
-└── render/
-    ├── mod.rs        — render dispatcher
-    ├── workbench.rs  — top-level multi-pane layout
-    ├── header.rs     — connection states + toggles
-    ├── canvas/
-    │   ├── mod.rs    — canvas dispatcher; pick renderer per
-    │   │              CanvasView variant
-    │   └── flow_graph.rs — flow-graph paint via Painter
-    ├── inspector.rs  — inspector pane paint
-    ├── diagnostics.rs — diagnostics pane paint
-    ├── wire.rs       — wire pane paint
-    └── constructor.rs — modal/in-place constructor flows
+└── lib.rs            — testable public client modules
 ```
 
-All bodies are `todo!()` skeleton-as-design.
+## Runtime Flow
 
-## Cross-cutting context
+On first frame the app sends `ObserveInterfaceState` to the configured
+ordinary Mentci socket. Replies are rendered in the transcript as NOTA.
+The `observe` button repeats the request. The `meta` button records the
+current meta-mode placeholder until the daemon exposes a live meta channel.
 
-- Project intent:
-  lore/INTENTION.md
-- Project-wide architecture:
-  criome/ARCHITECTURE.md
-- The first design report:
-  workspace/reports/111
-- The library:
-  mentci-lib
+Socket paths come from:
+
+- `MENTCI_SOCKET`, defaulting to `$XDG_RUNTIME_DIR/mentci.socket` or
+  `/tmp/mentci.socket`.
+- `MENTCI_META_SOCKET`, defaulting to `$XDG_RUNTIME_DIR/mentci-meta.socket`
+  or `/tmp/mentci-meta.socket`.
 
 ## Status
 
-**First daemon-connected GUI slice.** The crate compiles against the
-current mentci-lib state model and now has a real `signal-mentci`
-ordinary-mode client panel. It sends `ObserveInterfaceState` to a live
-`mentci-daemon` socket and renders the reply as NOTA. Meta mode is
-visible in the UI as the root-like lane, but the daemon does not yet
-expose a live meta socket; startup configuration remains the binary
-`meta-signal-mentci` file.
+The old `mentci-lib` direct criome/nexus driver workbench has been removed.
+The app now presents the daemon-connected client path as the whole first
+screen.

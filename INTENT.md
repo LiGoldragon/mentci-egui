@@ -7,9 +7,9 @@ says what the psyche wants it to BE.*
 
 ## Purpose
 
-`mentci-egui` is a thin egui shell over `mentci-lib`. It renders
-`WorkbenchView` snapshots, captures gestures, executes library `Cmd`
-values, and keeps application logic out of the GUI crate.
+`mentci-egui` is a thin egui client for the `mentci` daemon. It sends typed
+`signal-mentci` requests, renders daemon replies, and keeps approval state and
+application logic in the daemon.
 
 ## Mentci Approval Surface
 
@@ -17,11 +17,10 @@ Mentci is becoming the psyche-facing criome approval component: a
 daemon-owned programmable UI surface for escalated criome questions.
 The full component shape is the future `mentci` daemon repository plus
 the `signal-mentci` and `meta-signal-mentci` contract repositories.
-`mentci-egui` is one possible client shell for that surface, not the
-owner of approval logic, wire vocabulary, daemon lifecycle, or durable
-state. The question queue, suggested answer, context, response state,
-and subscription model live in `mentci-lib` and the future Mentci
-daemon; this crate paints and dispatches only.
+`mentci-egui` is one possible client shell for that surface, not the owner of
+approval logic, wire vocabulary, daemon lifecycle, or durable state. The
+question queue, suggested answer, context, response state, and subscription
+model live in the Mentci daemon; this crate paints and dispatches only.
 
 ## Daemon-Connected GUI
 
@@ -36,14 +35,14 @@ they arrive rather than feeling like the single synchronous CLI path.
 
 ## Constraints
 
-- Keep the shell thin. Application state, constructor flows, daemon
-  connection state, and approval-flow logic live in `mentci-lib`.
-- The shell owns egui/eframe integration, rendering, gesture capture,
-  and command execution only.
+- Keep the shell thin. Application state, daemon connection state, and
+  approval-flow logic live in `mentci`.
+- The shell owns egui/eframe integration, rendering, and daemon request
+  dispatch only.
 - NOTA text is a human/client projection and acceptable GUI fallback for
   typed values without dedicated panes. Component communication stays
   typed binary through the daemon/client boundary.
 
 *Source statements live in Spirit, especially the Mentci approval
 surface decision and the workspace thin-shell discipline captured in
-`mentci-lib` intent.*
+the Mentci component intent.*
