@@ -25,7 +25,7 @@ pub struct DaemonClient {
 
 #[derive(Clone, Debug)]
 pub struct DaemonTranscriptEntry {
-    pub mode: DaemonMode,
+    pub socket_kind: SocketKind,
     pub operation: String,
     pub socket_path: PathBuf,
     pub request_nota: String,
@@ -33,9 +33,9 @@ pub struct DaemonTranscriptEntry {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum DaemonMode {
-    Ordinary,
-    Meta,
+pub enum SocketKind {
+    Mentci,
+    MetaMentci,
 }
 
 impl DaemonClient {
@@ -77,7 +77,7 @@ impl DaemonClient {
         });
         let reply = self.send_ordinary_frame(&frame)?;
         Ok(DaemonTranscriptEntry {
-            mode: DaemonMode::Ordinary,
+            socket_kind: SocketKind::Mentci,
             operation: "ObserveInterfaceState".to_string(),
             socket_path: self.ordinary_socket.clone(),
             request_nota,
@@ -87,7 +87,7 @@ impl DaemonClient {
 
     pub fn meta_mode_placeholder(&self) -> DaemonTranscriptEntry {
         DaemonTranscriptEntry {
-            mode: DaemonMode::Meta,
+            socket_kind: SocketKind::MetaMentci,
             operation: "MetaMode".to_string(),
             socket_path: self.meta_socket.clone(),
             request_nota: "(meta mode selected)".to_string(),
@@ -174,11 +174,11 @@ impl DaemonClient {
     }
 }
 
-impl DaemonMode {
+impl SocketKind {
     pub fn label(self) -> &'static str {
         match self {
-            Self::Ordinary => "ordinary",
-            Self::Meta => "meta",
+            Self::Mentci => "Mentci",
+            Self::MetaMentci => "MetaMentci",
         }
     }
 }

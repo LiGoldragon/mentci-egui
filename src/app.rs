@@ -5,7 +5,7 @@
 
 use std::sync::mpsc;
 
-use crate::daemon_client::{DaemonClient, DaemonTranscriptEntry};
+use crate::daemon_client::{DaemonClient, DaemonTranscriptEntry, SocketKind};
 
 pub struct MentciEguiApp {
     tokio_runtime: tokio::runtime::Runtime,
@@ -62,7 +62,7 @@ impl MentciEguiApp {
             match result {
                 Ok(entry) => self.daemon_transcript.push(entry),
                 Err(error) => self.daemon_transcript.push(DaemonTranscriptEntry {
-                    mode: crate::daemon_client::DaemonMode::Ordinary,
+                    socket_kind: SocketKind::Mentci,
                     operation: "ObserveInterfaceState".to_string(),
                     socket_path: self.daemon_client.ordinary_socket().clone(),
                     request_nota: "(ObserveInterfaceState ...)".to_string(),
@@ -76,10 +76,10 @@ impl MentciEguiApp {
         ui.horizontal(|ui| {
             ui.heading("mentci");
             ui.separator();
-            ui.label("ordinary");
+            ui.label(SocketKind::Mentci.label());
             ui.monospace(self.daemon_client.ordinary_socket().display().to_string());
             ui.separator();
-            ui.label("meta");
+            ui.label(SocketKind::MetaMentci.label());
             ui.monospace(self.daemon_client.meta_socket().display().to_string());
             ui.separator();
             if ui
@@ -114,7 +114,7 @@ impl MentciEguiApp {
                 for entry in self.daemon_transcript.iter().rev() {
                     egui::Frame::group(ui.style()).show(ui, |ui| {
                         ui.horizontal_wrapped(|ui| {
-                            ui.strong(entry.mode.label());
+                            ui.strong(entry.socket_kind.label());
                             ui.label(&entry.operation);
                             ui.monospace(entry.socket_path.display().to_string());
                         });

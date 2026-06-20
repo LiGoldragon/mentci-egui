@@ -42,6 +42,9 @@ they arrive rather than feeling like the single synchronous CLI path.
 - NOTA text is a human/client projection and acceptable GUI fallback for
   typed values without dedicated panes. Component communication stays
   typed binary through the daemon/client boundary.
+- Socket paths are displayed with component-channel labels such as `Criome`
+  and `MetaCriome`, or `Mentci` and `MetaMentci`, rather than generic
+  ordinary/meta labels.
 
 *Source statements live in Spirit, especially the Mentci approval
 surface decision and the workspace thin-shell discipline captured in

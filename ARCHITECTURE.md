@@ -56,6 +56,11 @@ Socket paths come from:
 - `MENTCI_META_SOCKET`, defaulting to `$XDG_RUNTIME_DIR/mentci-meta.socket`
   or `/tmp/mentci-meta.socket`.
 
+The UI labels socket paths by component and authority channel. The Mentci
+ordinary socket is `Mentci`; the Mentci meta socket is `MetaMentci`. Future
+component sockets follow the same shape, for example `Criome` and
+`MetaCriome`.
+
 ## Status
 
 The old `mentci-lib` direct criome/nexus driver workbench has been removed.

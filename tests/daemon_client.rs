@@ -1,6 +1,6 @@
 use mentci::configuration::DaemonConfiguration;
 use mentci::daemon::Daemon;
-use mentci_egui::daemon_client::{DaemonClient, DaemonMode};
+use mentci_egui::daemon_client::{DaemonClient, SocketKind};
 use meta_signal_mentci::{
     ComponentKind, MentciDaemonConfiguration, NotificationClient, PersonaIdentity, PersonaKeyLabel,
     PersonaName, StandardSocket,
@@ -32,7 +32,7 @@ fn daemon_client_observes_live_mentci_daemon_as_nota() {
         .expect("observe interface state");
 
     server.join().expect("join server");
-    assert_eq!(entry.mode, DaemonMode::Ordinary);
+    assert_eq!(entry.socket_kind, SocketKind::Mentci);
     assert_eq!(entry.operation, "ObserveInterfaceState");
     assert!(entry.request_nota.contains("ObserveInterfaceState"));
     assert!(entry.reply_nota.contains("InterfaceObservationOpened"));
