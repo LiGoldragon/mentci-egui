@@ -22,6 +22,12 @@ Owns:
 - A visible meta lane for privileged operations as `meta-signal-mentci`
   grows a live socket surface.
 - NOTA rendering for typed replies without dedicated widgets.
+- Following the operating-system light/dark preference: a
+  `SystemThemeFollower` reads the desktop colour-scheme (via the desktop
+  portal) and mirrors it into egui's visuals, re-probing on a coarse timer
+  so a live system theme flip is picked up. The OS preference is the source
+  of truth; the shell holds no theme of its own. Light is the fallback when
+  the desktop reports no preference.
 
 Does not own:
 

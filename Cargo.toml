@@ -21,6 +21,7 @@ signal-mentci = { git = "https://github.com/LiGoldragon/signal-mentci", branch =
 mentci-lib   = { git = "https://github.com/LiGoldragon/mentci-lib", branch = "main", features = ["nota-text"] }
 eframe       = "0.27"
 egui         = "0.27"
+dark-light   = "1.1"
 thiserror    = "2"
 tokio        = { version = "1", features = ["rt-multi-thread"] }
 

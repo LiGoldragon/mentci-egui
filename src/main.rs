@@ -16,6 +16,11 @@ fn main() -> eframe::Result<()> {
         .expect("failed to build tokio runtime");
 
     let native_options = eframe::NativeOptions {
+        // Follow the OS light/dark preference; light is the fallback default
+        // when the desktop reports no preference. The app also re-syncs the
+        // system theme each frame through `dark-light` (see app.rs).
+        follow_system_theme: true,
+        default_theme: eframe::Theme::Light,
         viewport: egui::ViewportBuilder::default()
             .with_title("mentci")
             .with_inner_size([1280.0, 800.0])

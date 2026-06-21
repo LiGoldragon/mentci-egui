@@ -35,6 +35,43 @@ enum CardAction {
     Answer(ApprovalDecision),
 }
 
+/// Follows the operating-system light/dark preference and mirrors it into
+/// egui's visuals. The OS colour-scheme (read through the desktop portal) is the
+/// source of truth; this shell never owns a theme of its own — it follows the
+/// system, throttling the portal probe to a coarse interval rather than calling
+/// it every frame, and applies the visuals on the first probe and on any change.
+enum SystemThemeFollower {
+    Unprobed,
+    Following { mode: dark_light::Mode, last_probe: f64 },
+}
+
+impl SystemThemeFollower {
+    const PROBE_INTERVAL_SECONDS: f64 = 2.0;
+
+    fn new() -> Self {
+        Self::Unprobed
+    }
+
+    fn follow(&mut self, ctx: &egui::Context) {
+        let now = ctx.input(|input| input.time);
+        if let Self::Following { last_probe, .. } = self
+            && now - *last_probe < Self::PROBE_INTERVAL_SECONDS
+        {
+            return;
+        }
+        let detected = dark_light::detect();
+        let changed = !matches!(self, Self::Following { mode, .. } if *mode == detected);
+        *self = Self::Following { mode: detected, last_probe: now };
+        if changed {
+            let visuals = match detected {
+                dark_light::Mode::Dark => egui::Visuals::dark(),
+                dark_light::Mode::Light | dark_light::Mode::Default => egui::Visuals::light(),
+            };
+            ctx.set_visuals(visuals);
+        }
+    }
+}
+
 pub struct MentciEguiApp {
     tokio_runtime: tokio::runtime::Runtime,
     bootstrap_done: bool,
@@ -47,6 +84,8 @@ pub struct MentciEguiApp {
     daemon_replies: mpsc::Receiver<crate::error::Result<MentciReply>>,
     daemon_reply_sender: mpsc::Sender<crate::error::Result<MentciReply>>,
     ordinary_request_in_flight: bool,
+    /// Mirrors the operating-system light/dark preference into egui's visuals.
+    theme: SystemThemeFollower,
 }
 
 impl MentciEguiApp {
@@ -61,6 +100,7 @@ impl MentciEguiApp {
             daemon_replies,
             daemon_reply_sender,
             ordinary_request_in_flight: false,
+            theme: SystemThemeFollower::new(),
         }
     }
 
@@ -327,6 +367,7 @@ impl MentciEguiApp {
 
 impl eframe::App for MentciEguiApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        self.theme.follow(ctx);
         self.bootstrap_if_needed();
         self.drain_daemon_replies();
 
