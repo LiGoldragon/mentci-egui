@@ -2238,6 +2238,7 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.18",
  "tokio",
+ "zbus 3.15.2",
 ]
 
 [[package]]

@@ -24,6 +24,7 @@ egui         = "0.27"
 dark-light   = "1.1"
 thiserror    = "2"
 tokio        = { version = "1", features = ["rt-multi-thread"] }
+zbus         = "3.15.2"
 
 [dev-dependencies]
 mentci             = { git = "https://github.com/LiGoldragon/mentci", branch = "main" }

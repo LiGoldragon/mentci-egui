@@ -35,6 +35,12 @@ enum CardAction {
     Answer(ApprovalDecision),
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum SystemColorScheme {
+    Dark,
+    Light,
+}
+
 /// Follows the operating-system light/dark preference and mirrors it into
 /// egui's visuals. The OS colour-scheme (read through the desktop portal) is the
 /// source of truth; this shell never owns a theme of its own — it follows the
@@ -43,9 +49,57 @@ enum CardAction {
 enum SystemThemeFollower {
     Unprobed,
     Following {
-        mode: dark_light::Mode,
+        scheme: SystemColorScheme,
         last_probe: f64,
     },
+}
+
+impl SystemColorScheme {
+    fn detect() -> Self {
+        Self::from_freedesktop_portal()
+            .or_else(|| Self::from_dark_light(dark_light::detect()))
+            .unwrap_or(Self::Light)
+    }
+
+    fn visuals(self) -> egui::Visuals {
+        match self {
+            Self::Dark => egui::Visuals::dark(),
+            Self::Light => egui::Visuals::light(),
+        }
+    }
+
+    fn from_dark_light(mode: dark_light::Mode) -> Option<Self> {
+        match mode {
+            dark_light::Mode::Dark => Some(Self::Dark),
+            dark_light::Mode::Light => Some(Self::Light),
+            dark_light::Mode::Default => None,
+        }
+    }
+
+    fn from_freedesktop_portal() -> Option<Self> {
+        let connection = zbus::blocking::Connection::session().ok()?;
+        let reply = connection
+            .call_method(
+                Some("org.freedesktop.portal.Desktop"),
+                "/org/freedesktop/portal/desktop",
+                Some("org.freedesktop.portal.Settings"),
+                "Read",
+                &("org.freedesktop.appearance", "color-scheme"),
+            )
+            .ok()?;
+        match reply.body::<zbus::zvariant::Value<'_>>().ok()? {
+            zbus::zvariant::Value::U32(value) => Self::from_portal_value(value),
+            _ => None,
+        }
+    }
+
+    fn from_portal_value(value: u32) -> Option<Self> {
+        match value {
+            1 => Some(Self::Dark),
+            2 => Some(Self::Light),
+            _ => None,
+        }
+    }
 }
 
 impl SystemThemeFollower {
@@ -62,18 +116,14 @@ impl SystemThemeFollower {
         {
             return;
         }
-        let detected = dark_light::detect();
-        let changed = !matches!(self, Self::Following { mode, .. } if *mode == detected);
+        let detected = SystemColorScheme::detect();
+        let changed = !matches!(self, Self::Following { scheme, .. } if *scheme == detected);
         *self = Self::Following {
-            mode: detected,
+            scheme: detected,
             last_probe: now,
         };
         if changed {
-            let visuals = match detected {
-                dark_light::Mode::Dark => egui::Visuals::dark(),
-                dark_light::Mode::Light | dark_light::Mode::Default => egui::Visuals::light(),
-            };
-            ctx.set_visuals(visuals);
+            ctx.set_visuals(detected.visuals());
         }
     }
 }
@@ -415,5 +465,39 @@ impl eframe::App for MentciEguiApp {
         });
 
         ctx.request_repaint_after(std::time::Duration::from_millis(100));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn portal_color_scheme_values_map_to_egui_schemes() {
+        assert_eq!(
+            SystemColorScheme::from_portal_value(1),
+            Some(SystemColorScheme::Dark)
+        );
+        assert_eq!(
+            SystemColorScheme::from_portal_value(2),
+            Some(SystemColorScheme::Light)
+        );
+        assert_eq!(SystemColorScheme::from_portal_value(0), None);
+    }
+
+    #[test]
+    fn dark_light_default_does_not_force_light_before_other_sources() {
+        assert_eq!(
+            SystemColorScheme::from_dark_light(dark_light::Mode::Dark),
+            Some(SystemColorScheme::Dark)
+        );
+        assert_eq!(
+            SystemColorScheme::from_dark_light(dark_light::Mode::Light),
+            Some(SystemColorScheme::Light)
+        );
+        assert_eq!(
+            SystemColorScheme::from_dark_light(dark_light::Mode::Default),
+            None
+        );
     }
 }
