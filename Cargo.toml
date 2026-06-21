@@ -15,10 +15,9 @@ path = "src/main.rs"
 nota-next    = { git = "https://github.com/LiGoldragon/nota-next.git", branch = "main" }
 signal-frame = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main", features = ["nota-text"] }
 signal-mentci = { git = "https://github.com/LiGoldragon/signal-mentci", branch = "main", features = ["nota-text"] }
-# Re-founded shared model: the egui shell consumes mentci-lib's ObservationModel
+# Re-founded client model: the egui shell consumes mentci-lib's ObservationModel
 # (MVU core keyed by component socket) and its NOTA-fallback renderer instead of
-# keeping its own approval/transcript state. This proves mentci-lib is the
-# shared leg of the triad.
+# keeping its own approval/transcript state.
 mentci-lib   = { git = "https://github.com/LiGoldragon/mentci-lib", branch = "main", features = ["nota-text"] }
 eframe       = "0.27"
 egui         = "0.27"
