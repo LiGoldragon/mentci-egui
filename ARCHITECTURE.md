@@ -55,12 +55,24 @@ ordinary Mentci socket. Replies are rendered in the transcript as NOTA.
 The `observe` button repeats the request. The `meta` button records the
 current meta-mode placeholder until the daemon exposes a live meta channel.
 
+The header also carries the **introspect trace** control — the first proof
+of the universal-client direction. mentci-lib now speaks a second component's
+contract (`signal-introspect`), not just its own triad's `signal-mentci`. The
+button issues an introspect `ComponentTrace` query through
+`mentci_lib::IntrospectClient` off-thread; the returned `ComponentTrace` events
+(component, layer, event_name, sequence) fold into the same transcript and
+render as NOTA through `RenderNota`, exactly like mentci replies. The shell
+wires the control; mentci-lib owns the transport and the typed reply.
+
 Socket paths come from:
 
 - `MENTCI_SOCKET`, defaulting to `$XDG_RUNTIME_DIR/mentci.socket` or
   `/tmp/mentci.socket`.
 - `MENTCI_META_SOCKET`, defaulting to `$XDG_RUNTIME_DIR/mentci-meta.socket`
   or `/tmp/mentci-meta.socket`.
+- `MENTCI_INTROSPECT_SOCKET`, defaulting to
+  `$XDG_RUNTIME_DIR/introspect.socket` or `/tmp/introspect.socket` — the
+  introspect daemon's introspection-query socket the trace control dials.
 
 The UI labels socket paths by component and authority channel. The Mentci
 ordinary socket is `Mentci`; the Mentci meta socket is `MetaMentci`. Future

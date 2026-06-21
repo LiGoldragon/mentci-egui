@@ -17,8 +17,9 @@ signal-frame = { git = "https://github.com/LiGoldragon/signal-frame.git", branch
 signal-mentci = { git = "https://github.com/LiGoldragon/signal-mentci", branch = "main", features = ["nota-text"] }
 # Re-founded client model: the egui shell consumes mentci-lib's ObservationModel
 # (MVU core keyed by component socket) and its NOTA-fallback renderer instead of
-# keeping its own approval/transcript state.
-mentci-lib   = { git = "https://github.com/LiGoldragon/mentci-lib", branch = "main", features = ["nota-text"] }
+# keeping its own approval/transcript state. The trace-introspect-slice branch
+# adds the IntrospectClient (universal-client seed) the introspect panel calls.
+mentci-lib   = { git = "https://github.com/LiGoldragon/mentci-lib", branch = "trace-introspect-slice", features = ["nota-text"] }
 eframe       = "0.27"
 egui         = "0.27"
 dark-light   = "1.1"

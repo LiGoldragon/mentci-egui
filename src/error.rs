@@ -21,6 +21,12 @@ pub enum Error {
 
     #[error("unexpected daemon frame: {0}")]
     UnexpectedDaemonFrame(String),
+
+    /// The introspect query (the universal-client second component) failed.
+    /// Carries mentci-lib's typed introspect error so the shell surfaces the
+    /// real cause rather than a String catch-all.
+    #[error("introspect query failed: {0}")]
+    Introspect(#[from] mentci_lib::Error),
 }
 
 pub type Result<T> = core::result::Result<T, Error>;

@@ -7,11 +7,13 @@
 //! `ObservationView` and renders each reply through `mentci_lib`'s NOTA-fallback
 //! renderer. mentci-lib is the application; this file is the rendering.
 
+use std::path::PathBuf;
 use std::sync::mpsc;
 
 use mentci_lib::{
-    Cmd, ComponentSocketKind, CriomeAccess, EngineEvent, ObservationModel, RenderNota,
-    RenderOrigin, RenderedObject, UserEvent,
+    Cmd, ComponentSocketKind, ComponentTrace, CriomeAccess, EngineEvent, EngineIdentifier,
+    IntrospectClient, IntrospectionTarget, ObservationModel, RenderNota, RenderOrigin,
+    RenderedObject, UserEvent,
 };
 use signal_mentci::{
     ApprovalDecision, ApprovalQuestion, ApprovalSource, InterfaceInterest, MentciReply,
@@ -19,6 +21,50 @@ use signal_mentci::{
 };
 
 use crate::daemon_client::{DaemonClient, SocketKind};
+
+/// The introspect query surface the header drives: the typed client mentci-lib
+/// owns (the universal-client seed), the engine the trace is filtered to, and
+/// the component whose actor-boundary trace is fetched. A data-bearing noun so
+/// the shell wires one control to it rather than scattering socket + filter
+/// state across the app.
+struct IntrospectPane {
+    client: IntrospectClient,
+    engine: EngineIdentifier,
+    component: IntrospectionTarget,
+}
+
+impl IntrospectPane {
+    /// Build the pane from the environment, mirroring how `DaemonClient`
+    /// resolves the mentci socket: `MENTCI_INTROSPECT_SOCKET` if set, else the
+    /// `XDG_RUNTIME_DIR` default, else `/tmp`. The default engine and component
+    /// match the first tracing -> introspect slice (spirit's Signal component on
+    /// the `prototype` engine).
+    fn from_environment() -> Self {
+        Self {
+            client: IntrospectClient::new(Self::socket_from_environment()),
+            engine: EngineIdentifier::new("prototype"),
+            component: IntrospectionTarget::Signal,
+        }
+    }
+
+    fn socket_from_environment() -> PathBuf {
+        match std::env::var_os("MENTCI_INTROSPECT_SOCKET") {
+            Some(path) => PathBuf::from(path),
+            None => match std::env::var_os("XDG_RUNTIME_DIR") {
+                Some(directory) => PathBuf::from(directory).join("introspect.socket"),
+                None => PathBuf::from("/tmp/introspect.socket"),
+            },
+        }
+    }
+
+    /// Run the `ComponentTrace` query off-thread and return the typed reply.
+    /// `event_name: None` returns every event for the component.
+    fn query_trace(&self) -> crate::error::Result<ComponentTrace> {
+        self.client
+            .component_trace(self.engine.clone(), self.component, None)
+            .map_err(crate::error::Error::from)
+    }
+}
 
 /// One rendered observation the shell shows: which operation produced it and
 /// the NOTA body the shared renderer produced.
@@ -84,6 +130,11 @@ pub struct MentciEguiApp {
     daemon_replies: mpsc::Receiver<crate::error::Result<MentciReply>>,
     daemon_reply_sender: mpsc::Sender<crate::error::Result<MentciReply>>,
     ordinary_request_in_flight: bool,
+    /// The introspect query surface — mentci-lib talking to a second component.
+    introspect: IntrospectPane,
+    introspect_replies: mpsc::Receiver<crate::error::Result<ComponentTrace>>,
+    introspect_reply_sender: mpsc::Sender<crate::error::Result<ComponentTrace>>,
+    introspect_request_in_flight: bool,
     /// Mirrors the operating-system light/dark preference into egui's visuals.
     theme: SystemThemeFollower,
 }
@@ -91,6 +142,7 @@ pub struct MentciEguiApp {
 impl MentciEguiApp {
     pub fn new(tokio_runtime: tokio::runtime::Runtime) -> Self {
         let (daemon_reply_sender, daemon_replies) = mpsc::channel();
+        let (introspect_reply_sender, introspect_replies) = mpsc::channel();
         Self {
             tokio_runtime,
             bootstrap_done: false,
@@ -100,7 +152,57 @@ impl MentciEguiApp {
             daemon_replies,
             daemon_reply_sender,
             ordinary_request_in_flight: false,
+            introspect: IntrospectPane::from_environment(),
+            introspect_replies,
+            introspect_reply_sender,
+            introspect_request_in_flight: false,
             theme: SystemThemeFollower::new(),
+        }
+    }
+
+    /// Fire the introspect `ComponentTrace` query off-thread. The reply is
+    /// folded into the same transcript as mentci replies through `RenderNota`,
+    /// so introspect events render as NOTA exactly like the rest of the log.
+    fn request_introspect_trace(&mut self) {
+        if self.introspect_request_in_flight {
+            return;
+        }
+        self.introspect_request_in_flight = true;
+        let sender = self.introspect_reply_sender.clone();
+        let pane = self.introspect_query_handle();
+        self.tokio_runtime.spawn_blocking(move || {
+            let _ = sender.send(pane.query_trace());
+        });
+    }
+
+    /// A cloneable handle carrying just what the off-thread query needs: the
+    /// typed client plus the engine/component filter. Keeps the blocking task
+    /// from borrowing the whole app.
+    fn introspect_query_handle(&self) -> IntrospectPane {
+        IntrospectPane {
+            client: self.introspect.client.clone(),
+            engine: self.introspect.engine.clone(),
+            component: self.introspect.component,
+        }
+    }
+
+    fn drain_introspect_replies(&mut self) {
+        while let Ok(result) = self.introspect_replies.try_recv() {
+            self.introspect_request_in_flight = false;
+            match result {
+                Ok(trace) => self.entries.push(ObservationEntry {
+                    operation: format!(
+                        "ComponentTrace {:?} ({} events)",
+                        trace.component,
+                        trace.events().len()
+                    ),
+                    rendered: trace.render_nota(RenderOrigin::Reply),
+                }),
+                Err(error) => self.entries.push(ObservationEntry {
+                    operation: "ComponentTrace (error)".to_string(),
+                    rendered: format!("{error}").render_nota(RenderOrigin::Reply),
+                }),
+            }
         }
     }
 
@@ -227,6 +329,24 @@ impl MentciEguiApp {
                 self.request_interface_state();
             }
             if self.ordinary_request_in_flight {
+                ui.spinner();
+            }
+            ui.separator();
+            // The universal-client control: query the introspect daemon for the
+            // selected component's actor-boundary trace and render it as NOTA in
+            // the transcript, alongside the mentci replies.
+            ui.label("Introspect");
+            ui.monospace(self.introspect.client.socket().display().to_string());
+            if ui
+                .add_enabled(
+                    !self.introspect_request_in_flight,
+                    egui::Button::new("introspect trace"),
+                )
+                .clicked()
+            {
+                self.request_introspect_trace();
+            }
+            if self.introspect_request_in_flight {
                 ui.spinner();
             }
         });
@@ -370,6 +490,7 @@ impl eframe::App for MentciEguiApp {
         self.theme.follow(ctx);
         self.bootstrap_if_needed();
         self.drain_daemon_replies();
+        self.drain_introspect_replies();
 
         egui::TopBottomPanel::top("daemon_header").show(ctx, |ui| {
             self.render_header(ui);
