@@ -10,7 +10,7 @@
 use std::sync::mpsc;
 
 use mentci_lib::{
-    Cmd, ComponentSocketKind, EngineEvent, ObservationModel, RenderNota, RenderOrigin,
+    Cmd, ComponentSocketKind, CriomeAccess, EngineEvent, ObservationModel, RenderNota, RenderOrigin,
     RenderedObject, UserEvent,
 };
 use signal_mentci::{
@@ -215,10 +215,20 @@ impl MentciEguiApp {
     fn render_approval_card(&mut self, ui: &mut egui::Ui) {
         let pending: Vec<ApprovalQuestion> = self.model.approval().pending().to_vec();
         let current = self.model.approval().current().cloned();
+        let criome_access = self.model.view().criome_access;
+        let can_answer = matches!(criome_access, Some(CriomeAccess::ReadWrite));
         let mut action: Option<CardAction> = None;
 
         ui.heading("approvals");
-        ui.label(format!("{} pending", pending.len()));
+        ui.horizontal(|ui| {
+            ui.label(format!("{} pending", pending.len()));
+            ui.separator();
+            ui.label(match criome_access {
+                Some(CriomeAccess::ReadWrite) => "criome: read-write",
+                Some(CriomeAccess::ReadOnly) => "criome: read-only",
+                None => "criome: observation-only",
+            });
+        });
         ui.separator();
 
         if pending.is_empty() {
@@ -256,17 +266,22 @@ impl MentciEguiApp {
                     });
                 }
                 ui.add_space(6.0);
-                ui.horizontal(|ui| {
-                    if ui.button("approve").clicked() {
-                        action = Some(CardAction::Answer(ApprovalDecision::ApproveSuggestedAnswer));
-                    }
-                    if ui.button("reject").clicked() {
-                        action = Some(CardAction::Answer(ApprovalDecision::Reject));
-                    }
-                    if ui.button("defer").clicked() {
-                        action = Some(CardAction::Answer(ApprovalDecision::Defer));
-                    }
-                });
+                if can_answer {
+                    ui.horizontal(|ui| {
+                        if ui.button("approve").clicked() {
+                            action =
+                                Some(CardAction::Answer(ApprovalDecision::ApproveSuggestedAnswer));
+                        }
+                        if ui.button("reject").clicked() {
+                            action = Some(CardAction::Answer(ApprovalDecision::Reject));
+                        }
+                        if ui.button("defer").clicked() {
+                            action = Some(CardAction::Answer(ApprovalDecision::Defer));
+                        }
+                    });
+                } else {
+                    ui.label("observation-only — this daemon has no criome write access");
+                }
             }
         }
 
