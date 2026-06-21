@@ -1176,7 +1176,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2077,7 +2077,7 @@ dependencies = [
 [[package]]
 name = "mentci"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/mentci?branch=main#cab247b72922663eedf24b61ce21fc938b5e3c75"
+source = "git+https://github.com/LiGoldragon/mentci?branch=main#67843223467aefa801cd0fc523d64e2afd0ac622"
 dependencies = [
  "criome",
  "kameo",
@@ -2112,7 +2112,7 @@ dependencies = [
 [[package]]
 name = "mentci-lib"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/mentci-lib?branch=main#0731c374f9c03a70f564b22ce9e90d2cef3461c0"
+source = "git+https://github.com/LiGoldragon/mentci-lib?branch=main#f628b371e6860fa88a25de873f6415e98f125909"
 dependencies = [
  "meta-signal-criome",
  "meta-signal-mentci",
@@ -2949,7 +2949,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.12.1",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -3160,11 +3160,12 @@ dependencies = [
 [[package]]
 name = "signal-mentci"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/signal-mentci?branch=main#765ee3550f5b15e1b8fe8a80ab1b540d7fedc625"
+source = "git+https://github.com/LiGoldragon/signal-mentci?branch=main#eab23054f42e897c48bc1e597adbc31519a3b87e"
 dependencies = [
  "nota-next",
  "rkyv",
  "schema-rust-next",
+ "signal-criome",
  "signal-frame",
  "thiserror 2.0.18",
 ]
@@ -3300,7 +3301,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52d1cfed4120b4d927bf7c0f86d2087a4a7d6027c906d9f9d525a80573b9be51"
 dependencies = [
  "libc",
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -3373,7 +3374,7 @@ dependencies = [
  "getrandom 0.4.3",
  "once_cell",
  "rustix 1.1.4",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -3632,7 +3633,7 @@ checksum = "f2f6fb2847f6742cd76af783a2a2c49e9375d0a111c7bef6f71cd9e738c72d6e"
 dependencies = [
  "memoffset 0.9.1",
  "tempfile",
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

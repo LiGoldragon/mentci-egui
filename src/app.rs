@@ -77,9 +77,8 @@ impl MentciEguiApp {
         let sender = self.daemon_reply_sender.clone();
         let client = self.daemon_client.clone();
         self.tokio_runtime.spawn_blocking(move || {
-            let _ = sender.send(client.observe_interface_state_typed(
-                InterfaceInterest::FullInterfaceState,
-            ));
+            let _ = sender
+                .send(client.observe_interface_state_typed(InterfaceInterest::FullInterfaceState));
         });
     }
 
