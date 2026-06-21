@@ -105,6 +105,22 @@ impl DaemonClient {
         self.reply_output(reply)
     }
 
+    /// Send any typed `signal-mentci` request to the daemon and return the
+    /// typed reply the shared model folds. This is the generic form behind
+    /// `observe_interface_state_typed`; the approval card uses it to deliver an
+    /// `AnswerQuestion` verdict the model produced as a `Cmd::SendRequest`.
+    pub fn send_request_typed(
+        &self,
+        request: MentciRequest,
+    ) -> crate::error::Result<MentciReply> {
+        let frame = MentciFrame::new(MentciFrameBody::Request {
+            exchange: self.exchange(),
+            request: request.into_request(),
+        });
+        let reply = self.send_ordinary_frame(&frame)?;
+        self.reply_output(reply)
+    }
+
     pub fn meta_mode_placeholder(&self) -> DaemonTranscriptEntry {
         DaemonTranscriptEntry {
             socket_kind: SocketKind::MetaMentci,

@@ -33,3 +33,12 @@ tempfile           = "3"
 [lints.rust]
 unused = "allow"
 dead_code = "allow"
+
+# Designer prototype: consume the local epic contracts (signal-mentci's
+# slot-bearing CriomeEscalation and mentci-lib's daemon-routing model) so the
+# approval card routes correctly before operator integrates the epic to main.
+# Both collapse to the plain git deps once the epic lands on main.
+[patch."https://github.com/LiGoldragon/signal-mentci"]
+signal-mentci = { path = "/home/li/wt/github.com/LiGoldragon/signal-mentci/re-found-on-live-contracts" }
+[patch."https://github.com/LiGoldragon/mentci-lib"]
+mentci-lib = { path = "/home/li/wt/github.com/LiGoldragon/mentci-lib/re-found-on-live-contracts" }
