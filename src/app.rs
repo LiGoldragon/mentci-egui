@@ -42,7 +42,10 @@ enum CardAction {
 /// it every frame, and applies the visuals on the first probe and on any change.
 enum SystemThemeFollower {
     Unprobed,
-    Following { mode: dark_light::Mode, last_probe: f64 },
+    Following {
+        mode: dark_light::Mode,
+        last_probe: f64,
+    },
 }
 
 impl SystemThemeFollower {
@@ -61,7 +64,10 @@ impl SystemThemeFollower {
         }
         let detected = dark_light::detect();
         let changed = !matches!(self, Self::Following { mode, .. } if *mode == detected);
-        *self = Self::Following { mode: detected, last_probe: now };
+        *self = Self::Following {
+            mode: detected,
+            last_probe: now,
+        };
         if changed {
             let visuals = match detected {
                 dark_light::Mode::Dark => egui::Visuals::dark(),
@@ -363,6 +369,27 @@ impl MentciEguiApp {
                 }
             });
     }
+
+    fn render_panes(&self, ui: &mut egui::Ui) {
+        let panes = self.model.view().panes;
+        if panes.is_empty() {
+            return;
+        }
+        ui.heading("panes");
+        for pane in panes {
+            egui::Frame::group(ui.style()).show(ui, |ui| {
+                ui.strong(pane.pane.as_str());
+                let mut body = pane.body.as_str().to_owned();
+                ui.add(
+                    egui::TextEdit::multiline(&mut body)
+                        .font(egui::TextStyle::Monospace)
+                        .desired_width(f32::INFINITY)
+                        .interactive(false),
+                );
+            });
+            ui.add_space(8.0);
+        }
+    }
 }
 
 impl eframe::App for MentciEguiApp {
@@ -380,6 +407,10 @@ impl eframe::App for MentciEguiApp {
                 self.render_approval_card(ui);
             });
         egui::CentralPanel::default().show(ctx, |ui| {
+            self.render_panes(ui);
+            if !self.model.view().panes.is_empty() && !self.entries.is_empty() {
+                ui.separator();
+            }
             self.render_transcript(ui);
         });
 
