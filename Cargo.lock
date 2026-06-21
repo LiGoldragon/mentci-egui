@@ -1176,7 +1176,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2077,10 +2077,11 @@ dependencies = [
 [[package]]
 name = "mentci"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/mentci?branch=main#f5e17af000a5f08783903f8dc09f068dd7277f31"
+source = "git+https://github.com/LiGoldragon/mentci?branch=main#cab247b72922663eedf24b61ce21fc938b5e3c75"
 dependencies = [
  "criome",
  "kameo",
+ "mentci-lib",
  "meta-signal-criome",
  "meta-signal-mentci",
  "rkyv",
@@ -2274,8 +2275,8 @@ checksum = "2bf50223579dc7cdcfb3bfcacf7069ff68243f8c363f62ffa99cf000a6b9c451"
 
 [[package]]
 name = "nota-next"
-version = "0.5.0"
-source = "git+https://github.com/LiGoldragon/nota-next.git?branch=main#c43d04a159e90314a0094b61ace66053371cc247"
+version = "0.5.1"
+source = "git+https://github.com/LiGoldragon/nota-next.git?branch=main#f94b5462a4456b3651a93c40dc7c19a287426213"
 dependencies = [
  "nota-next-derive",
  "rkyv",
@@ -2284,7 +2285,7 @@ dependencies = [
 [[package]]
 name = "nota-next-derive"
 version = "0.3.0"
-source = "git+https://github.com/LiGoldragon/nota-next.git?branch=main#c43d04a159e90314a0094b61ace66053371cc247"
+source = "git+https://github.com/LiGoldragon/nota-next.git?branch=main#f94b5462a4456b3651a93c40dc7c19a287426213"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2948,7 +2949,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.12.1",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3159,7 +3160,7 @@ dependencies = [
 [[package]]
 name = "signal-mentci"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/signal-mentci?branch=main#58dd5a26d9b2e64a98fb64d30ac44ba0d3febe8e"
+source = "git+https://github.com/LiGoldragon/signal-mentci?branch=main#765ee3550f5b15e1b8fe8a80ab1b540d7fedc625"
 dependencies = [
  "nota-next",
  "rkyv",
@@ -3299,7 +3300,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52d1cfed4120b4d927bf7c0f86d2087a4a7d6027c906d9f9d525a80573b9be51"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -3372,7 +3373,7 @@ dependencies = [
  "getrandom 0.4.3",
  "once_cell",
  "rustix 1.1.4",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3631,7 +3632,7 @@ checksum = "f2f6fb2847f6742cd76af783a2a2c49e9375d0a111c7bef6f71cd9e738c72d6e"
 dependencies = [
  "memoffset 0.9.1",
  "tempfile",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -4105,7 +4106,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
