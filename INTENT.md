@@ -22,16 +22,29 @@ approval logic, wire vocabulary, daemon lifecycle, or durable state. The
 question queue, suggested answer, context, response state, and subscription
 model live in the Mentci daemon; this crate paints and dispatches only.
 
-## Daemon-Connected GUI
+## Thin client of mentci-lib's ObservationModel
 
-Spirit record `xlrk` clarifies the revived GUI concept: `mentci-egui`
-is the interactive client for the `mentci` daemon. It connects over the
-ordinary `signal-mentci` contract, exposes a root-like meta mode for
-privileged `meta-signal-mentci` operations as that daemon surface lands,
-and renders typed replies or unknown inner objects through NOTA text as
-the first fallback before purpose-built panes exist. The full client is
-long-lived and subscription-oriented; it should receive daemon events as
-they arrive rather than feeling like the single synchronous CLI path.
+`mentci-egui` is the interactive egui client for the `mentci` daemon, and it is
+a thin client of `mentci-lib`'s `ObservationModel`: it holds the model, feeds
+typed daemon replies in as `EngineEvent`s, paints the model's `ObservationView`,
+and renders unknown inner objects through `mentci-lib`'s NOTA-fallback renderer
+before purpose-built panes exist (Spirit record `xlrk`). The shell owns no
+approval logic, queue, or per-socket state of its own — that is the model's.
+
+It renders the approval card for each pending question and feeds the human's
+decision back through the model as `UserEvent::AnswerQuestion`. Because of the
+daemon-routing decision (2026-06-21) the shell has NO criome connection: the
+model emits the answer to the mentci daemon over the mentci socket, and the
+daemon routes the verdict to criome by the parked `AuthorizationRequestSlot`.
+The shell never opens a criome socket and never sees a criome verdict. If the
+daemon's criome access is read-only, the mirrored access level reaches the shell
+through the model, and the shell presents observation only — no answer controls.
+
+It connects over the ordinary `signal-mentci` contract and exposes a root-like
+meta mode for privileged `meta-signal-mentci` operations as that daemon surface
+lands. The full client is long-lived and subscription-oriented; it should
+receive daemon events as they arrive rather than feeling like the single
+synchronous CLI path.
 
 ## Constraints
 

@@ -63,6 +63,11 @@ component sockets follow the same shape, for example `Criome` and
 
 ## Status
 
-The old `mentci-lib` direct criome/nexus driver workbench has been removed.
-The app now presents the daemon-connected client path as the whole first
-screen.
+The old `mentci-lib` direct criome/nexus driver workbench has been removed. The
+app is now a thin client of `mentci-lib`'s `ObservationModel`: it holds the
+model, feeds daemon replies in as `EngineEvent`s, paints the `ObservationView`,
+and renders the approval card. The human's decision goes back through
+`UserEvent::AnswerQuestion`; the model emits it to the mentci daemon, which
+routes the verdict to criome by the parked `AuthorizationRequestSlot`. The shell
+holds no criome connection and never sees a criome verdict — daemon-routing,
+decided 2026-06-21.
