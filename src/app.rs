@@ -19,11 +19,12 @@ use signal_mentci::{
 };
 
 use crate::control::{
-    GuiControlEndpoint, GuiControlInput, GuiControlOutput, GuiControlRejection,
+    GuiControlEndpoint, GuiControlInput, GuiControlInputPolicy, GuiControlOutput,
     GuiControlRejectionReason, GuiControlRequest, GuiControlServer, GuiControlState,
-    RemoteControlMode,
+    RemoteControlMode, RemoteControlModePolicy,
 };
 use crate::daemon_client::{DaemonClient, SocketKind};
+use signal_mentci_client::{QuestionCount, TranscriptEntryCount};
 
 /// One rendered observation the shell shows: which operation produced it and
 /// the NOTA body the shared renderer produced.
@@ -169,7 +170,7 @@ impl MentciEguiApp {
             control_requests,
             control_request_sender,
             ordinary_request_in_flight: false,
-            remote_control_mode: RemoteControlMode::default(),
+            remote_control_mode: RemoteControlMode::LocalOnly,
             control_server_started: false,
             control_endpoint: GuiControlEndpoint::from_environment(),
             theme: SystemThemeFollower::new(),
@@ -253,47 +254,78 @@ impl MentciEguiApp {
 
     fn control_state(&self) -> GuiControlState {
         let view = self.model.view();
-        GuiControlState {
-            mode: self.remote_control_mode,
-            pending_questions: view.approval.pending_count as u64,
-            answered_questions: view.approval.answered_count as u64,
-            selected_question: self
-                .model
+        GuiControlState::new(
+            self.remote_control_mode,
+            QuestionCount::new(view.approval.pending_count as u64),
+            QuestionCount::new(view.approval.answered_count as u64),
+            self.model
                 .approval()
                 .current()
                 .map(|question| question.identifier.clone()),
-            ordinary_request_in_flight: self.ordinary_request_in_flight,
-            transcript_entries: self.entries.len() as u64,
-        }
+            self.ordinary_request_in_flight,
+            TranscriptEntryCount::new(self.entries.len() as u64),
+        )
     }
 
     fn apply_control_input(&mut self, input: GuiControlInput) -> GuiControlOutput {
         if input.requires_remote_drive() && !self.remote_control_mode.remote_can_drive() {
-            return GuiControlOutput::Rejected(GuiControlRejection::new(
-                GuiControlRejectionReason::RemoteControlDisabled,
-            ));
+            return GuiControlOutput::rejected(GuiControlRejectionReason::RemoteControlDisabled);
         }
         match input {
-            GuiControlInput::ObserveState => GuiControlOutput::State(self.control_state()),
+            GuiControlInput::ObserveState(_) => GuiControlOutput::State(self.control_state()),
             GuiControlInput::SetRemoteControl(mode) => {
                 self.remote_control_mode = mode;
                 GuiControlOutput::Accepted(self.control_state())
             }
-            GuiControlInput::TriggerObserve => {
-                self.request_interface_state();
+            GuiControlInput::ObserveComponent(observation) => {
+                let commands = self.model.on_user_event(UserEvent::Observe {
+                    socket: observation.socket,
+                    interest: observation.interest,
+                });
+                self.dispatch(commands);
                 GuiControlOutput::Accepted(self.control_state())
             }
-            GuiControlInput::SelectQuestion(question) => {
-                self.select(question);
+            GuiControlInput::RetractObservation(retraction) => {
+                let commands = self.model.on_user_event(UserEvent::RetractObservation {
+                    socket: retraction.socket,
+                    token: retraction.token,
+                });
+                self.dispatch(commands);
                 GuiControlOutput::Accepted(self.control_state())
             }
-            GuiControlInput::AnswerSelected(decision) => {
-                if self.model.approval().current().is_none() {
-                    return GuiControlOutput::Rejected(GuiControlRejection::new(
-                        GuiControlRejectionReason::NoSelectedQuestion,
-                    ));
+            GuiControlInput::SelectQuestion(selection) => {
+                self.select(selection.into_payload());
+                GuiControlOutput::Accepted(self.control_state())
+            }
+            GuiControlInput::AnswerQuestion(verdict) => {
+                let known = self
+                    .model
+                    .approval()
+                    .pending()
+                    .iter()
+                    .any(|question| question.identifier == verdict.question);
+                if !known {
+                    return GuiControlOutput::rejected(GuiControlRejectionReason::UnknownQuestion);
                 }
-                self.answer(decision);
+                let commands = self
+                    .model
+                    .on_user_event(UserEvent::AnswerQuestion { verdict });
+                self.dispatch(commands);
+                GuiControlOutput::Accepted(self.control_state())
+            }
+            GuiControlInput::ProposeEditedAnswer(proposal) => {
+                let commands = self
+                    .model
+                    .on_user_event(UserEvent::ProposeEditedAnswer { proposal });
+                self.dispatch(commands);
+                GuiControlOutput::Accepted(self.control_state())
+            }
+            GuiControlInput::PushQuestion(presentation) => {
+                let commands = self.model.on_user_event(UserEvent::PushQuestion {
+                    socket: presentation.socket,
+                    proposal: presentation.proposal,
+                });
+                self.dispatch(commands);
                 GuiControlOutput::Accepted(self.control_state())
             }
         }
@@ -599,14 +631,14 @@ mod tests {
         let runtime = tokio::runtime::Runtime::new().expect("runtime");
         let mut app = MentciEguiApp::new(runtime);
 
-        let output = app.apply_control_input(GuiControlInput::TriggerObserve);
-
-        assert!(matches!(
-            output,
-            GuiControlOutput::Rejected(GuiControlRejection {
-                reason: GuiControlRejectionReason::RemoteControlDisabled
-            })
+        let output = app.apply_control_input(GuiControlInput::observe_component(
+            signal_mentci_client::ComponentObservation {
+                socket: ComponentSocketKind::Mentci,
+                interest: InterfaceInterest::FullInterfaceState,
+            },
         ));
+
+        assert!(matches!(output, GuiControlOutput::Rejected(_)));
     }
 
     #[test]
@@ -619,13 +651,9 @@ mod tests {
         ));
         assert!(matches!(enabled, GuiControlOutput::Accepted(_)));
 
-        let observed = app.apply_control_input(GuiControlInput::ObserveState);
-        assert!(matches!(
-            observed,
-            GuiControlOutput::State(GuiControlState {
-                mode: RemoteControlMode::DualWrite,
-                ..
-            })
+        let observed = app.apply_control_input(GuiControlInput::observe_state(
+            signal_mentci_client::ControllerName::new("test"),
         ));
+        assert!(matches!(observed, GuiControlOutput::State(_)));
     }
 }

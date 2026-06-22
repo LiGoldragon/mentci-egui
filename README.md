@@ -3,7 +3,8 @@
 The first egui client for the **mentci** daemon.
 
 The app speaks `signal-mentci` to `mentci-daemon`, renders typed
-request/reply values as NOTA, and keeps approval state in the daemon.
+request/reply values as NOTA, keeps shared approval state in the daemon, and
+exposes its client-local controls through `signal-mentci-client`.
 Linux + Mac first-class.
 
 See `ARCHITECTURE.md`.
@@ -17,6 +18,10 @@ Project-wide architecture: criome/ARCHITECTURE.md.
 `ObserveInterfaceState` to `mentci-daemon` over `signal-mentci`, and
 renders the request/reply transcript as NOTA. Purpose-built panes grow from
 that typed fallback.
+
+The companion `mentci-egui-control` CLI accepts one `signal-mentci-client`
+NOTA input, sends the generated binary signal frame to the GUI control socket,
+and prints the typed reply as NOTA.
 
 ## License
 

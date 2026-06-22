@@ -8,8 +8,9 @@ says what the psyche wants it to BE.*
 ## Purpose
 
 `mentci-egui` is a thin egui client for the `mentci` daemon. It sends typed
-`signal-mentci` requests, renders daemon replies, and keeps approval state and
-application logic in the daemon.
+`signal-mentci` requests, renders daemon replies, and keeps shared approval
+state and application logic in the daemon while owning its own view and
+presentation state.
 
 ## Mentci Approval Surface
 
@@ -48,13 +49,13 @@ synchronous CLI path.
 
 ## Remote-Drivable GUI
 
-`mentci-egui` itself is also becoming a signal-addressable interactive client:
-the local egui controls and view/presentation state are exposed through
-schema-defined socket interfaces so agents and CLIs can drive the same GUI
-behavior without duplicating application logic (Spirit record `6kw3`). Shared
-component data still comes from the `mentci` daemon, but each GUI/client may
-keep its own view state so multiple clients can present different selections,
-filters, and panes at the same time.
+`mentci-egui` itself is a signal-addressable interactive client: the local egui
+controls and view/presentation state are exposed through the shared
+`signal-mentci-client` contract so agents and CLIs can drive the same GUI
+behavior without duplicating application logic (Spirit record `nc9k`, replacing
+`6kw3`). Shared component data still comes from the `mentci` daemon, but each
+GUI/client owns its own view state so multiple clients can present different
+selections, filters, and panes at the same time.
 
 Remote-control availability is explicit UI state. The GUI can be in local-only,
 remote-enabled, remote-presentation, or dual-write shapes as those controls

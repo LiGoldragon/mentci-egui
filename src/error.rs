@@ -22,6 +22,9 @@ pub enum Error {
     #[error("unexpected daemon frame: {0}")]
     UnexpectedDaemonFrame(String),
 
+    #[error("unexpected control frame: {0}")]
+    UnexpectedControlFrame(String),
+
     #[error("control socket parse error: {0}")]
     ControlParse(String),
 

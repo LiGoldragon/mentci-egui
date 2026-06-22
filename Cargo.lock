@@ -2235,6 +2235,7 @@ dependencies = [
  "nota-next",
  "signal-frame",
  "signal-mentci",
+ "signal-mentci-client",
  "tempfile",
  "thiserror 2.0.18",
  "tokio",
@@ -3357,6 +3358,21 @@ dependencies = [
  "schema-rust-next",
  "signal-criome",
  "signal-frame",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "signal-mentci-client"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/signal-mentci-client?branch=main#a61c94b82396c9fbd0ff4205b464a8db37076d0d"
+dependencies = [
+ "meta-signal-mentci",
+ "nota-next",
+ "rkyv",
+ "schema-rust-next",
+ "signal-criome",
+ "signal-frame",
+ "signal-mentci",
  "thiserror 2.0.18",
 ]
 

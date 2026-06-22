@@ -1,8 +1,7 @@
-//! Remote-control surface for the egui shell itself.
+//! Remote-control transport for the egui shell.
 //!
-//! This is the first local implementation of Spirit record `6kw3`: the GUI has
-//! its own socket-addressable control state, while shared component data still
-//! flows through `mentci-daemon`.
+//! The wire vocabulary lives in `signal-mentci-client`; this module only binds
+//! that generated contract to the local Unix socket and the app's event loop.
 
 use std::io::{Read, Write};
 use std::os::unix::fs::PermissionsExt;
@@ -11,56 +10,16 @@ use std::path::{Path, PathBuf};
 use std::sync::mpsc;
 use std::thread;
 
-use nota_next::{NotaDecode, NotaEncode, NotaSource};
-use signal_mentci::{ApprovalDecision, QuestionIdentifier};
+use signal_frame::{ExchangeIdentifier, ExchangeLane, LaneSequence, RequestPayload, SessionEpoch};
 
 use crate::error::{Error, Result};
 
-#[derive(NotaEncode, NotaDecode, Debug, Default, Clone, Copy, PartialEq, Eq)]
-pub enum RemoteControlMode {
-    #[default]
-    LocalOnly,
-    RemoteEnabled,
-    RemotePresentation,
-    DualWrite,
-}
-
-#[derive(NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq)]
-pub enum GuiControlInput {
-    ObserveState,
-    SetRemoteControl(RemoteControlMode),
-    TriggerObserve,
-    SelectQuestion(QuestionIdentifier),
-    AnswerSelected(ApprovalDecision),
-}
-
-#[derive(NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq)]
-pub enum GuiControlOutput {
-    State(GuiControlState),
-    Accepted(GuiControlState),
-    Rejected(GuiControlRejection),
-}
-
-#[derive(NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq)]
-pub struct GuiControlState {
-    pub mode: RemoteControlMode,
-    pub pending_questions: u64,
-    pub answered_questions: u64,
-    pub selected_question: Option<QuestionIdentifier>,
-    pub ordinary_request_in_flight: bool,
-    pub transcript_entries: u64,
-}
-
-#[derive(NotaEncode, NotaDecode, Debug, Clone, PartialEq, Eq)]
-pub struct GuiControlRejection {
-    pub reason: GuiControlRejectionReason,
-}
-
-#[derive(NotaEncode, NotaDecode, Debug, Clone, Copy, PartialEq, Eq)]
-pub enum GuiControlRejectionReason {
-    RemoteControlDisabled,
-    NoSelectedQuestion,
-}
+pub use signal_mentci_client::{
+    ClientFrame as GuiControlFrame, ClientFrameBody as GuiControlFrameBody,
+    ClientReply as GuiControlOutput, ClientRequest as GuiControlInput,
+    Rejection as GuiControlRejection, RejectionReason as GuiControlRejectionReason,
+    RemoteControlMode, StateSnapshot as GuiControlState,
+};
 
 #[derive(Debug)]
 pub struct GuiControlRequest {
@@ -84,49 +43,41 @@ pub struct GuiControlClient {
     endpoint: GuiControlEndpoint,
 }
 
-impl RemoteControlMode {
-    pub fn remote_can_drive(self) -> bool {
+pub trait RemoteControlModePolicy {
+    fn remote_can_drive(self) -> bool;
+    fn local_can_drive(self) -> bool;
+    fn label(self) -> &'static str;
+}
+
+pub trait GuiControlInputPolicy {
+    fn requires_remote_drive(&self) -> bool;
+}
+
+impl RemoteControlModePolicy for RemoteControlMode {
+    fn remote_can_drive(self) -> bool {
         matches!(
             self,
-            Self::RemoteEnabled | Self::RemotePresentation | Self::DualWrite
+            Self::RemoteEnabled | Self::Presentation | Self::DualWrite
         )
     }
 
-    pub fn local_can_drive(self) -> bool {
-        !matches!(self, Self::RemotePresentation)
+    fn local_can_drive(self) -> bool {
+        !matches!(self, Self::Presentation)
     }
 
-    pub fn label(self) -> &'static str {
+    fn label(self) -> &'static str {
         match self {
             Self::LocalOnly => "local only",
             Self::RemoteEnabled => "remote enabled",
-            Self::RemotePresentation => "remote presentation",
+            Self::Presentation => "presentation",
             Self::DualWrite => "dual write",
         }
     }
 }
 
-impl GuiControlInput {
-    pub fn from_nota(text: &str) -> Result<Self> {
-        NotaSource::new(text)
-            .parse()
-            .map_err(|error| Error::ControlParse(error.to_string()))
-    }
-
-    pub fn requires_remote_drive(&self) -> bool {
-        !matches!(self, Self::ObserveState | Self::SetRemoteControl(_))
-    }
-}
-
-impl GuiControlOutput {
-    pub fn to_nota_text(&self) -> String {
-        self.to_nota()
-    }
-}
-
-impl GuiControlRejection {
-    pub fn new(reason: GuiControlRejectionReason) -> Self {
-        Self { reason }
+impl GuiControlInputPolicy for GuiControlInput {
+    fn requires_remote_drive(&self) -> bool {
+        !matches!(self, Self::ObserveState(_) | Self::SetRemoteControl(_))
     }
 }
 
@@ -211,9 +162,7 @@ impl GuiControlServer {
     }
 
     fn handle_stream(&self, stream: &mut UnixStream) -> Result<()> {
-        let mut request_text = String::new();
-        stream.read_to_string(&mut request_text)?;
-        let input = GuiControlInput::from_nota(request_text.trim())?;
+        let (exchange, input) = GuiControlExchange::read_request(stream)?;
         let (reply_sender, reply_receiver) = mpsc::channel();
         self.request_sender
             .send(GuiControlRequest::new(input, reply_sender))
@@ -221,8 +170,7 @@ impl GuiControlServer {
         let output = reply_receiver
             .recv()
             .map_err(|error| Error::ControlReply(error.to_string()))?;
-        stream.write_all(output.to_nota_text().as_bytes())?;
-        stream.flush()?;
+        GuiControlExchange::write_reply(stream, exchange, output)?;
         Ok(())
     }
 }
@@ -232,35 +180,119 @@ impl GuiControlClient {
         Self { endpoint }
     }
 
-    pub fn submit(&self, input: GuiControlInput) -> Result<String> {
+    pub fn submit(&self, input: GuiControlInput) -> Result<GuiControlOutput> {
+        let exchange = GuiControlExchange::next();
         let mut stream = UnixStream::connect(self.endpoint.socket_path())?;
-        stream.write_all(input.to_nota().as_bytes())?;
+        GuiControlExchange::write_request(&mut stream, exchange, input)?;
         stream.shutdown(std::net::Shutdown::Write)?;
-        let mut reply = String::new();
-        stream.read_to_string(&mut reply)?;
-        Ok(reply)
+        GuiControlExchange::read_reply(&mut stream)
+    }
+}
+
+struct GuiControlExchange;
+
+impl GuiControlExchange {
+    fn next() -> ExchangeIdentifier {
+        ExchangeIdentifier::new(
+            SessionEpoch::new(1),
+            ExchangeLane::Connector,
+            LaneSequence::first(),
+        )
+    }
+
+    fn write_request(
+        stream: &mut UnixStream,
+        exchange: ExchangeIdentifier,
+        input: GuiControlInput,
+    ) -> Result<()> {
+        let frame = GuiControlFrame::new(GuiControlFrameBody::Request {
+            exchange,
+            request: input.into_request(),
+        });
+        Self::write_frame(stream, frame)
+    }
+
+    fn write_reply(
+        stream: &mut UnixStream,
+        exchange: ExchangeIdentifier,
+        output: GuiControlOutput,
+    ) -> Result<()> {
+        Self::write_frame(stream, output.into_reply_frame(exchange))
+    }
+
+    fn write_frame(stream: &mut UnixStream, frame: GuiControlFrame) -> Result<()> {
+        stream.write_all(&frame.encode_length_prefixed()?)?;
+        stream.flush()?;
+        Ok(())
+    }
+
+    fn read_request(stream: &mut UnixStream) -> Result<(ExchangeIdentifier, GuiControlInput)> {
+        match Self::read_frame(stream)?.into_body() {
+            GuiControlFrameBody::Request { exchange, request } => {
+                if request.payloads().len() != 1 {
+                    return Err(Error::UnexpectedControlFrame(format!(
+                        "expected one control operation, found {}",
+                        request.payloads().len()
+                    )));
+                }
+                Ok((exchange, request.payloads().head().clone()))
+            }
+            other => Err(Error::UnexpectedControlFrame(format!(
+                "expected request frame, got {other:?}"
+            ))),
+        }
+    }
+
+    fn read_reply(stream: &mut UnixStream) -> Result<GuiControlOutput> {
+        match Self::read_frame(stream)?.into_body() {
+            GuiControlFrameBody::Reply { reply, .. } => match reply {
+                signal_frame::Reply::Accepted { per_operation, .. } => {
+                    match per_operation.into_head() {
+                        signal_frame::SubReply::Ok(output) => Ok(output),
+                        other => Err(Error::UnexpectedControlFrame(format!(
+                            "expected accepted control reply, got {other:?}"
+                        ))),
+                    }
+                }
+                signal_frame::Reply::Rejected { reason } => Err(Error::UnexpectedControlFrame(
+                    format!("control request rejected at frame layer: {reason:?}"),
+                )),
+            },
+            other => Err(Error::UnexpectedControlFrame(format!(
+                "expected reply frame, got {other:?}"
+            ))),
+        }
+    }
+
+    fn read_frame(stream: &mut UnixStream) -> Result<GuiControlFrame> {
+        let mut bytes = Vec::new();
+        stream.read_to_end(&mut bytes)?;
+        Ok(GuiControlFrame::decode_length_prefixed(&bytes)?)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use signal_mentci_client::{
+        ControllerName, QuestionCount, StateObservation, TranscriptEntryCount,
+    };
     use std::time::{Duration, Instant};
 
     #[test]
     fn remote_control_mode_exposes_local_and_remote_drive_policy() {
         assert!(!RemoteControlMode::LocalOnly.remote_can_drive());
         assert!(RemoteControlMode::RemoteEnabled.remote_can_drive());
-        assert!(RemoteControlMode::RemotePresentation.remote_can_drive());
+        assert!(RemoteControlMode::Presentation.remote_can_drive());
         assert!(RemoteControlMode::DualWrite.remote_can_drive());
-        assert!(!RemoteControlMode::RemotePresentation.local_can_drive());
+        assert!(!RemoteControlMode::Presentation.local_can_drive());
         assert!(RemoteControlMode::DualWrite.local_can_drive());
     }
 
     #[test]
     fn control_input_round_trips_as_nota() {
         let input = GuiControlInput::SetRemoteControl(RemoteControlMode::DualWrite);
-        let recovered = GuiControlInput::from_nota(input.to_nota().as_str()).expect("parse");
+        let recovered: GuiControlInput = input.to_string().parse().expect("parse");
 
         assert_eq!(recovered, input);
     }
@@ -280,25 +312,34 @@ mod tests {
         assert!(endpoint.socket_path().exists(), "control socket exists");
 
         let client = GuiControlClient::new(endpoint);
-        let client_thread = thread::spawn(move || client.submit(GuiControlInput::ObserveState));
+        let input =
+            GuiControlInput::ObserveState(StateObservation::new(ControllerName::new("agent")));
+        let expected = input.clone();
+        let client_thread = thread::spawn(move || client.submit(input));
         let request = request_receiver.recv().expect("request received");
-        assert_eq!(request.input(), &GuiControlInput::ObserveState);
+        assert_eq!(request.input(), &expected);
         request
-            .respond(GuiControlOutput::State(GuiControlState {
-                mode: RemoteControlMode::RemoteEnabled,
-                pending_questions: 1,
-                answered_questions: 2,
-                selected_question: None,
-                ordinary_request_in_flight: false,
-                transcript_entries: 3,
-            }))
+            .respond(GuiControlOutput::State(GuiControlState::new(
+                RemoteControlMode::RemoteEnabled,
+                QuestionCount::new(1),
+                QuestionCount::new(2),
+                None,
+                false,
+                TranscriptEntryCount::new(3),
+            )))
             .expect("respond");
 
         let reply = client_thread
             .join()
             .expect("client thread joins")
             .expect("client reply");
-        assert!(reply.contains("RemoteEnabled"));
+        assert!(matches!(
+            reply,
+            GuiControlOutput::State(GuiControlState {
+                mode: RemoteControlMode::RemoteEnabled,
+                ..
+            })
+        ));
         server_thread
             .join()
             .expect("server thread joins")
