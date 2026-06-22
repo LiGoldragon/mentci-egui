@@ -4,6 +4,7 @@
 //! [`MentciEguiApp`], and opens the eframe window.
 
 mod app;
+mod control;
 mod daemon_client;
 mod error;
 

@@ -46,12 +46,27 @@ lands. The full client is long-lived and subscription-oriented; it should
 receive daemon events as they arrive rather than feeling like the single
 synchronous CLI path.
 
+## Remote-Drivable GUI
+
+`mentci-egui` itself is also becoming a signal-addressable interactive client:
+the local egui controls and view/presentation state are exposed through
+schema-defined socket interfaces so agents and CLIs can drive the same GUI
+behavior without duplicating application logic (Spirit record `6kw3`). Shared
+component data still comes from the `mentci` daemon, but each GUI/client may
+keep its own view state so multiple clients can present different selections,
+filters, and panes at the same time.
+
+Remote-control availability is explicit UI state. The GUI can be in local-only,
+remote-enabled, remote-presentation, or dual-write shapes as those controls
+land; local-input lockout and simultaneous local/remote control must be visible
+state, not hidden behavior.
+
 ## Constraints
 
 - Keep the shell thin. Application state, daemon connection state, and
   approval-flow logic live in `mentci`.
-- The shell owns egui/eframe integration, rendering, and daemon request
-  dispatch only.
+- The shell owns egui/eframe integration, rendering, daemon request dispatch,
+  and GUI-local view/presentation state. It does not own shared component state.
 - NOTA text is a human/client projection and acceptable GUI fallback for
   typed values without dedicated panes. Component communication stays
   typed binary through the daemon/client boundary.

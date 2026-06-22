@@ -21,6 +21,15 @@ pub enum Error {
 
     #[error("unexpected daemon frame: {0}")]
     UnexpectedDaemonFrame(String),
+
+    #[error("control socket parse error: {0}")]
+    ControlParse(String),
+
+    #[error("control request channel failed: {0}")]
+    ControlRequest(String),
+
+    #[error("control reply channel failed: {0}")]
+    ControlReply(String),
 }
 
 pub type Result<T> = core::result::Result<T, Error>;

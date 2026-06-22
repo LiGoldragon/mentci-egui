@@ -18,6 +18,11 @@ use signal_mentci::{
     QuestionIdentifier, SubscriberName,
 };
 
+use crate::control::{
+    GuiControlEndpoint, GuiControlInput, GuiControlOutput, GuiControlRejection,
+    GuiControlRejectionReason, GuiControlRequest, GuiControlServer, GuiControlState,
+    RemoteControlMode,
+};
 use crate::daemon_client::{DaemonClient, SocketKind};
 
 /// One rendered observation the shell shows: which operation produced it and
@@ -139,7 +144,12 @@ pub struct MentciEguiApp {
     entries: Vec<ObservationEntry>,
     daemon_replies: mpsc::Receiver<crate::error::Result<MentciReply>>,
     daemon_reply_sender: mpsc::Sender<crate::error::Result<MentciReply>>,
+    control_requests: mpsc::Receiver<GuiControlRequest>,
+    control_request_sender: mpsc::Sender<GuiControlRequest>,
     ordinary_request_in_flight: bool,
+    remote_control_mode: RemoteControlMode,
+    control_server_started: bool,
+    control_endpoint: GuiControlEndpoint,
     /// Mirrors the operating-system light/dark preference into egui's visuals.
     theme: SystemThemeFollower,
 }
@@ -147,6 +157,7 @@ pub struct MentciEguiApp {
 impl MentciEguiApp {
     pub fn new(tokio_runtime: tokio::runtime::Runtime) -> Self {
         let (daemon_reply_sender, daemon_replies) = mpsc::channel();
+        let (control_request_sender, control_requests) = mpsc::channel();
         Self {
             tokio_runtime,
             bootstrap_done: false,
@@ -155,7 +166,12 @@ impl MentciEguiApp {
             entries: Vec::new(),
             daemon_replies,
             daemon_reply_sender,
+            control_requests,
+            control_request_sender,
             ordinary_request_in_flight: false,
+            remote_control_mode: RemoteControlMode::default(),
+            control_server_started: false,
+            control_endpoint: GuiControlEndpoint::from_environment(),
             theme: SystemThemeFollower::new(),
         }
     }
@@ -165,7 +181,20 @@ impl MentciEguiApp {
             return;
         }
         self.bootstrap_done = true;
+        self.start_control_server_if_needed();
         self.request_interface_state();
+    }
+
+    fn start_control_server_if_needed(&mut self) {
+        if self.control_server_started {
+            return;
+        }
+        self.control_server_started = true;
+        let server = GuiControlServer::new(
+            self.control_endpoint.clone(),
+            self.control_request_sender.clone(),
+        );
+        let _ = server.spawn();
     }
 
     fn request_interface_state(&mut self) {
@@ -222,6 +251,61 @@ impl MentciEguiApp {
             .on_user_event(UserEvent::SelectQuestion { question });
     }
 
+    fn control_state(&self) -> GuiControlState {
+        let view = self.model.view();
+        GuiControlState {
+            mode: self.remote_control_mode,
+            pending_questions: view.approval.pending_count as u64,
+            answered_questions: view.approval.answered_count as u64,
+            selected_question: self
+                .model
+                .approval()
+                .current()
+                .map(|question| question.identifier.clone()),
+            ordinary_request_in_flight: self.ordinary_request_in_flight,
+            transcript_entries: self.entries.len() as u64,
+        }
+    }
+
+    fn apply_control_input(&mut self, input: GuiControlInput) -> GuiControlOutput {
+        if input.requires_remote_drive() && !self.remote_control_mode.remote_can_drive() {
+            return GuiControlOutput::Rejected(GuiControlRejection::new(
+                GuiControlRejectionReason::RemoteControlDisabled,
+            ));
+        }
+        match input {
+            GuiControlInput::ObserveState => GuiControlOutput::State(self.control_state()),
+            GuiControlInput::SetRemoteControl(mode) => {
+                self.remote_control_mode = mode;
+                GuiControlOutput::Accepted(self.control_state())
+            }
+            GuiControlInput::TriggerObserve => {
+                self.request_interface_state();
+                GuiControlOutput::Accepted(self.control_state())
+            }
+            GuiControlInput::SelectQuestion(question) => {
+                self.select(question);
+                GuiControlOutput::Accepted(self.control_state())
+            }
+            GuiControlInput::AnswerSelected(decision) => {
+                if self.model.approval().current().is_none() {
+                    return GuiControlOutput::Rejected(GuiControlRejection::new(
+                        GuiControlRejectionReason::NoSelectedQuestion,
+                    ));
+                }
+                self.answer(decision);
+                GuiControlOutput::Accepted(self.control_state())
+            }
+        }
+    }
+
+    fn drain_control_requests(&mut self) {
+        while let Ok(request) = self.control_requests.try_recv() {
+            let output = self.apply_control_input(request.input().clone());
+            let _ = request.respond(output);
+        }
+    }
+
     fn drain_daemon_replies(&mut self) {
         while let Ok(result) = self.daemon_replies.try_recv() {
             self.ordinary_request_in_flight = false;
@@ -273,9 +357,12 @@ impl MentciEguiApp {
             ui.label(SocketKind::Mentci.label());
             ui.monospace(self.daemon_client.ordinary_socket().display().to_string());
             ui.separator();
+            ui.label(format!("remote: {}", self.remote_control_mode.label()));
+            ui.monospace(self.control_endpoint.socket_path().display().to_string());
+            ui.separator();
             if ui
                 .add_enabled(
-                    !self.ordinary_request_in_flight,
+                    !self.ordinary_request_in_flight && self.remote_control_mode.local_can_drive(),
                     egui::Button::new("observe"),
                 )
                 .clicked()
@@ -316,7 +403,8 @@ impl MentciEguiApp {
         let pending: Vec<ApprovalQuestion> = self.model.approval().pending().to_vec();
         let current = self.model.approval().current().cloned();
         let criome_access = self.model.view().criome_access;
-        let can_answer = matches!(criome_access, Some(CriomeAccess::ReadWrite));
+        let local_can_drive = self.remote_control_mode.local_can_drive();
+        let can_answer = local_can_drive && matches!(criome_access, Some(CriomeAccess::ReadWrite));
         let mut action: Option<CardAction> = None;
 
         ui.heading("approvals");
@@ -328,6 +416,10 @@ impl MentciEguiApp {
                 Some(CriomeAccess::ReadOnly) => "criome: read-only",
                 None => "criome: observation-only",
             });
+            if !local_can_drive {
+                ui.separator();
+                ui.label("local input locked");
+            }
         });
         ui.separator();
 
@@ -446,6 +538,7 @@ impl eframe::App for MentciEguiApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.theme.follow(ctx);
         self.bootstrap_if_needed();
+        self.drain_control_requests();
         self.drain_daemon_replies();
 
         egui::TopBottomPanel::top("daemon_header").show(ctx, |ui| {
@@ -499,5 +592,40 @@ mod tests {
             SystemColorScheme::from_dark_light(dark_light::Mode::Default),
             None
         );
+    }
+
+    #[test]
+    fn remote_control_rejects_drive_commands_until_enabled() {
+        let runtime = tokio::runtime::Runtime::new().expect("runtime");
+        let mut app = MentciEguiApp::new(runtime);
+
+        let output = app.apply_control_input(GuiControlInput::TriggerObserve);
+
+        assert!(matches!(
+            output,
+            GuiControlOutput::Rejected(GuiControlRejection {
+                reason: GuiControlRejectionReason::RemoteControlDisabled
+            })
+        ));
+    }
+
+    #[test]
+    fn remote_control_mode_change_enables_drive_commands() {
+        let runtime = tokio::runtime::Runtime::new().expect("runtime");
+        let mut app = MentciEguiApp::new(runtime);
+
+        let enabled = app.apply_control_input(GuiControlInput::SetRemoteControl(
+            RemoteControlMode::DualWrite,
+        ));
+        assert!(matches!(enabled, GuiControlOutput::Accepted(_)));
+
+        let observed = app.apply_control_input(GuiControlInput::ObserveState);
+        assert!(matches!(
+            observed,
+            GuiControlOutput::State(GuiControlState {
+                mode: RemoteControlMode::DualWrite,
+                ..
+            })
+        ));
     }
 }
