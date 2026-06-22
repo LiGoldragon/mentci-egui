@@ -435,21 +435,21 @@ impl MentciEguiApp {
     }
 
     fn render_header(&mut self, ui: &mut egui::Ui) {
-        ui.horizontal(|ui| {
+        ui.horizontal_wrapped(|ui| {
             ui.heading("mentci");
             ui.separator();
-            ui.label(SocketKind::Mentci.label());
-            ui.monospace(self.daemon_client.ordinary_socket().display().to_string());
+            ui.label("daemon").on_hover_text(format!(
+                "{} socket: {}",
+                SocketKind::Mentci.label(),
+                self.daemon_client.ordinary_socket().display()
+            ));
             ui.separator();
-            ui.label(format!("remote: {}", self.remote_control_mode.label()));
-            ui.monospace(self.control_endpoint.socket_path().display().to_string());
-            ui.label("meta");
-            ui.monospace(
-                self.meta_control_endpoint
-                    .socket_path()
-                    .display()
-                    .to_string(),
-            );
+            ui.label(format!("remote: {}", self.remote_control_mode.label()))
+                .on_hover_text(format!(
+                    "control socket: {}\nmeta control socket: {}",
+                    self.control_endpoint.socket_path().display(),
+                    self.meta_control_endpoint.socket_path().display()
+                ));
             ui.separator();
             if ui
                 .add_enabled(
@@ -471,11 +471,22 @@ impl MentciEguiApp {
         ui.horizontal_wrapped(|ui| {
             for socket in &view.sockets {
                 ui.group(|ui| {
-                    ui.label(socket.socket.as_str());
-                    ui.label(format!("{:?}", socket.liveness));
-                    if let Some(revision) = &socket.revision {
-                        ui.monospace(format!("rev {}", revision.value()));
-                    }
+                    ui.horizontal(|ui| {
+                        ui.label(socket.socket.as_str());
+                        let liveness = match &socket.liveness {
+                            mentci_lib::SocketLiveness::Disconnected => "disconnected",
+                            mentci_lib::SocketLiveness::Connecting => "connecting",
+                            mentci_lib::SocketLiveness::Connected => "connected",
+                            mentci_lib::SocketLiveness::Failed { .. } => "failed",
+                        };
+                        let response = ui.label(liveness);
+                        if let mentci_lib::SocketLiveness::Failed { reason } = &socket.liveness {
+                            response.on_hover_text(reason);
+                        }
+                        if let Some(revision) = &socket.revision {
+                            ui.monospace(format!("rev {}", revision.value()));
+                        }
+                    });
                 });
             }
             ui.separator();
@@ -638,6 +649,8 @@ impl eframe::App for MentciEguiApp {
         });
         egui::SidePanel::left("approvals")
             .default_width(340.0)
+            .width_range(260.0..=520.0)
+            .resizable(true)
             .show(ctx, |ui| {
                 self.render_approval_card(ui);
             });
