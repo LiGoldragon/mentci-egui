@@ -23,6 +23,8 @@ Owns:
 - A Unix-socket `signal-mentci` client for ordinary daemon requests.
 - A Unix-socket `signal-mentci-client` control endpoint for driving this client
   instance remotely.
+- A Unix-socket `meta-signal-mentci-client` control endpoint for configuring
+  remote-control policy.
 - A visible meta lane for privileged operations as `meta-signal-mentci`
   grows a live socket surface.
 - NOTA rendering for typed replies without dedicated widgets.
@@ -40,7 +42,8 @@ Does not own:
 - Daemon lifecycle, persistence, subscriptions, or notification fan-out.
 - Direct criome or nexus driver connections.
 - The `signal-mentci` or `meta-signal-mentci` wire vocabulary.
-- The `signal-mentci-client` control vocabulary.
+- The `signal-mentci-client` or `meta-signal-mentci-client` control
+  vocabularies.
 
 ## Code Map
 
@@ -48,7 +51,8 @@ Does not own:
 src/
 ├── main.rs           — entry; constructs tokio runtime and eframe window
 ├── app.rs            — daemon-first egui app and transcript view
-├── control.rs        — `signal-mentci-client` Unix-socket control endpoint
+├── control.rs        — `signal-mentci-client` and `meta-signal-mentci-client`
+│                       Unix-socket control endpoints
 ├── daemon_client.rs  — synchronous `signal-mentci` Unix-socket client
 ├── error.rs          — Error enum
 └── lib.rs            — testable public client modules
@@ -59,8 +63,10 @@ src/
 On first frame the app sends `ObserveInterfaceState` to the configured
 ordinary Mentci socket. Replies are rendered in the transcript as NOTA.
 The `observe` button repeats the request. Remote controllers send
-`signal-mentci-client::Input` frames to the control socket; the app maps them to
-the same `mentci-lib::UserEvent` path used by egui controls.
+`signal-mentci-client::Input` frames to the ordinary control socket; the app
+maps them to the same `mentci-lib::UserEvent` path used by egui controls.
+Controllers use the meta control socket for `Configure`, `SetRemoteControl`,
+and `ResetRemoteControl`.
 
 Socket paths come from:
 
@@ -70,6 +76,9 @@ Socket paths come from:
   or `/tmp/mentci-meta.socket`.
 - `MENTCI_EGUI_CONTROL_SOCKET`, defaulting to
   `$XDG_RUNTIME_DIR/mentci-egui.socket` or `/tmp/mentci-egui.socket`.
+- `MENTCI_EGUI_META_CONTROL_SOCKET`, defaulting to
+  `$XDG_RUNTIME_DIR/mentci-egui-meta.socket` or
+  `/tmp/mentci-egui-meta.socket`.
 
 The UI labels socket paths by component and authority channel. The Mentci
 ordinary socket is `Mentci`; the Mentci meta socket is `MetaMentci`. Future
@@ -86,5 +95,6 @@ and renders the approval card. The human's decision goes back through
 routes the verdict to criome by the parked `AuthorizationRequestSlot`. The shell
 holds no criome connection and never sees a criome verdict — daemon-routing,
 decided 2026-06-21. The old hand-rolled remote-control NOTA socket has been
-removed; remote control is now binary `signal-frame` over the generated
-`signal-mentci-client` contract, with NOTA only at the CLI text edge.
+removed; ordinary drive is now binary `signal-frame` over the generated
+`signal-mentci-client` contract, policy is binary `signal-frame` over
+`meta-signal-mentci-client`, and NOTA appears only at the CLI text edge.

@@ -2232,6 +2232,7 @@ dependencies = [
  "mentci",
  "mentci-lib",
  "meta-signal-mentci",
+ "meta-signal-mentci-client",
  "nota-next",
  "signal-frame",
  "signal-mentci",
@@ -2273,6 +2274,18 @@ dependencies = [
 name = "meta-signal-mentci"
 version = "0.1.0"
 source = "git+https://github.com/LiGoldragon/meta-signal-mentci?branch=main#5a22f9fe0b38fc45b13cd58922cee327ad123a0a"
+dependencies = [
+ "nota-next",
+ "rkyv",
+ "schema-rust-next",
+ "signal-frame",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "meta-signal-mentci-client"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/meta-signal-mentci-client?branch=main#d8a6064c43fb2638b93a67b3426b36b89e4cd9e6"
 dependencies = [
  "nota-next",
  "rkyv",
@@ -3364,9 +3377,10 @@ dependencies = [
 [[package]]
 name = "signal-mentci-client"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/signal-mentci-client?branch=main#a61c94b82396c9fbd0ff4205b464a8db37076d0d"
+source = "git+https://github.com/LiGoldragon/signal-mentci-client?branch=main#2b0a4c25f4f55d35ddd671323595ec52cfd9cb27"
 dependencies = [
  "meta-signal-mentci",
+ "meta-signal-mentci-client",
  "nota-next",
  "rkyv",
  "schema-rust-next",

@@ -21,7 +21,8 @@ use signal_mentci::{
 use crate::control::{
     GuiControlEndpoint, GuiControlInput, GuiControlInputPolicy, GuiControlOutput,
     GuiControlRejectionReason, GuiControlRequest, GuiControlServer, GuiControlState,
-    RemoteControlMode, RemoteControlModePolicy,
+    MetaControlConfigurationGeneration, MetaControlInput, MetaControlOutput, MetaControlRequest,
+    MetaControlServer, RemoteControlMode,
 };
 use crate::daemon_client::{DaemonClient, SocketKind};
 use signal_mentci_client::{QuestionCount, TranscriptEntryCount};
@@ -147,10 +148,15 @@ pub struct MentciEguiApp {
     daemon_reply_sender: mpsc::Sender<crate::error::Result<MentciReply>>,
     control_requests: mpsc::Receiver<GuiControlRequest>,
     control_request_sender: mpsc::Sender<GuiControlRequest>,
+    meta_control_requests: mpsc::Receiver<MetaControlRequest>,
+    meta_control_request_sender: mpsc::Sender<MetaControlRequest>,
     ordinary_request_in_flight: bool,
     remote_control_mode: RemoteControlMode,
+    default_remote_control_mode: RemoteControlMode,
+    meta_control_generation: u64,
     control_server_started: bool,
     control_endpoint: GuiControlEndpoint,
+    meta_control_endpoint: GuiControlEndpoint,
     /// Mirrors the operating-system light/dark preference into egui's visuals.
     theme: SystemThemeFollower,
 }
@@ -159,6 +165,7 @@ impl MentciEguiApp {
     pub fn new(tokio_runtime: tokio::runtime::Runtime) -> Self {
         let (daemon_reply_sender, daemon_replies) = mpsc::channel();
         let (control_request_sender, control_requests) = mpsc::channel();
+        let (meta_control_request_sender, meta_control_requests) = mpsc::channel();
         Self {
             tokio_runtime,
             bootstrap_done: false,
@@ -169,10 +176,15 @@ impl MentciEguiApp {
             daemon_reply_sender,
             control_requests,
             control_request_sender,
+            meta_control_requests,
+            meta_control_request_sender,
             ordinary_request_in_flight: false,
             remote_control_mode: RemoteControlMode::LocalOnly,
+            default_remote_control_mode: RemoteControlMode::LocalOnly,
+            meta_control_generation: 0,
             control_server_started: false,
             control_endpoint: GuiControlEndpoint::from_environment(),
+            meta_control_endpoint: GuiControlEndpoint::meta_from_environment(),
             theme: SystemThemeFollower::new(),
         }
     }
@@ -196,6 +208,11 @@ impl MentciEguiApp {
             self.control_request_sender.clone(),
         );
         let _ = server.spawn();
+        let meta_server = MetaControlServer::new(
+            self.meta_control_endpoint.clone(),
+            self.meta_control_request_sender.clone(),
+        );
+        let _ = meta_server.spawn();
     }
 
     fn request_interface_state(&mut self) {
@@ -273,10 +290,6 @@ impl MentciEguiApp {
         }
         match input {
             GuiControlInput::ObserveState(_) => GuiControlOutput::State(self.control_state()),
-            GuiControlInput::SetRemoteControl(mode) => {
-                self.remote_control_mode = mode;
-                GuiControlOutput::Accepted(self.control_state())
-            }
             GuiControlInput::ObserveComponent(observation) => {
                 let commands = self.model.on_user_event(UserEvent::Observe {
                     socket: observation.socket,
@@ -338,6 +351,45 @@ impl MentciEguiApp {
         }
     }
 
+    fn apply_meta_control_input(&mut self, input: MetaControlInput) -> MetaControlOutput {
+        match input {
+            MetaControlInput::Configure(configuration) => {
+                self.default_remote_control_mode = configuration.default_remote_control;
+                self.remote_control_mode = self.default_remote_control_mode;
+                self.meta_control_generation += 1;
+                MetaControlOutput::configured(MetaControlConfigurationGeneration::new(
+                    self.meta_control_generation,
+                ))
+            }
+            MetaControlInput::SetRemoteControl(mode) => {
+                self.remote_control_mode = mode;
+                MetaControlOutput::remote_control_set(mode)
+            }
+            MetaControlInput::ResetRemoteControl(scope) => {
+                if matches!(
+                    scope,
+                    meta_signal_mentci_client::RemoteResetScope::RemoteState
+                        | meta_signal_mentci_client::RemoteResetScope::All
+                ) {
+                    self.remote_control_mode = RemoteControlMode::LocalOnly;
+                }
+                MetaControlOutput::RemoteControlReset(
+                    meta_signal_mentci_client::RemoteControlReset {
+                        mode: self.remote_control_mode,
+                        scope,
+                    },
+                )
+            }
+        }
+    }
+
+    fn drain_meta_control_requests(&mut self) {
+        while let Ok(request) = self.meta_control_requests.try_recv() {
+            let output = self.apply_meta_control_input(request.input().clone());
+            let _ = request.respond(output);
+        }
+    }
+
     fn drain_daemon_replies(&mut self) {
         while let Ok(result) = self.daemon_replies.try_recv() {
             self.ordinary_request_in_flight = false;
@@ -391,6 +443,13 @@ impl MentciEguiApp {
             ui.separator();
             ui.label(format!("remote: {}", self.remote_control_mode.label()));
             ui.monospace(self.control_endpoint.socket_path().display().to_string());
+            ui.label("meta");
+            ui.monospace(
+                self.meta_control_endpoint
+                    .socket_path()
+                    .display()
+                    .to_string(),
+            );
             ui.separator();
             if ui
                 .add_enabled(
@@ -571,6 +630,7 @@ impl eframe::App for MentciEguiApp {
         self.theme.follow(ctx);
         self.bootstrap_if_needed();
         self.drain_control_requests();
+        self.drain_meta_control_requests();
         self.drain_daemon_replies();
 
         egui::TopBottomPanel::top("daemon_header").show(ctx, |ui| {
@@ -646,14 +706,17 @@ mod tests {
         let runtime = tokio::runtime::Runtime::new().expect("runtime");
         let mut app = MentciEguiApp::new(runtime);
 
-        let enabled = app.apply_control_input(GuiControlInput::SetRemoteControl(
+        let enabled = app.apply_meta_control_input(MetaControlInput::SetRemoteControl(
             RemoteControlMode::DualWrite,
         ));
-        assert!(matches!(enabled, GuiControlOutput::Accepted(_)));
+        assert!(matches!(enabled, MetaControlOutput::RemoteControlSet(_)));
 
-        let observed = app.apply_control_input(GuiControlInput::observe_state(
-            signal_mentci_client::ControllerName::new("test"),
+        let observed = app.apply_control_input(GuiControlInput::observe_component(
+            signal_mentci_client::ComponentObservation {
+                socket: ComponentSocketKind::Mentci,
+                interest: InterfaceInterest::FullInterfaceState,
+            },
         ));
-        assert!(matches!(observed, GuiControlOutput::State(_)));
+        assert!(matches!(observed, GuiControlOutput::Accepted(_)));
     }
 }

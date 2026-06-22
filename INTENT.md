@@ -51,16 +51,17 @@ synchronous CLI path.
 
 `mentci-egui` itself is a signal-addressable interactive client: the local egui
 controls and view/presentation state are exposed through the shared
-`signal-mentci-client` contract so agents and CLIs can drive the same GUI
+`signal-mentci-client` contract, while the remote-control policy is exposed
+through `meta-signal-mentci-client`. Agents and CLIs can drive the same GUI
 behavior without duplicating application logic (Spirit record `nc9k`, replacing
 `6kw3`). Shared component data still comes from the `mentci` daemon, but each
 GUI/client owns its own view state so multiple clients can present different
 selections, filters, and panes at the same time.
 
-Remote-control availability is explicit UI state. The GUI can be in local-only,
-remote-enabled, remote-presentation, or dual-write shapes as those controls
-land; local-input lockout and simultaneous local/remote control must be visible
-state, not hidden behavior.
+Remote-control availability is explicit meta-controlled UI state. The GUI can
+be in local-only, remote-enabled, presentation, or dual-write mode; local-input
+lockout and simultaneous local/remote control are visible state, not hidden
+behavior.
 
 ## Constraints
 
