@@ -42,7 +42,7 @@ impl IntrospectPane {
     fn from_environment() -> Self {
         Self {
             client: IntrospectClient::new(Self::socket_from_environment()),
-            engine: EngineIdentifier::new("prototype"),
+            engine: Self::engine_from_environment(),
             component: IntrospectionTarget::Signal,
         }
     }
@@ -54,6 +54,17 @@ impl IntrospectPane {
                 Some(directory) => PathBuf::from(directory).join("introspect.socket"),
                 None => PathBuf::from("/tmp/introspect.socket"),
             },
+        }
+    }
+
+    /// The engine identity the trace is filtered to. A component's pushed events
+    /// are stamped with the producing daemon's identity (spirit uses its socket
+    /// path), so the engine is `MENTCI_INTROSPECT_ENGINE` when set, falling back
+    /// to `prototype` for the first slice's synthetic source.
+    fn engine_from_environment() -> EngineIdentifier {
+        match std::env::var("MENTCI_INTROSPECT_ENGINE") {
+            Ok(engine) if !engine.is_empty() => EngineIdentifier::new(engine),
+            _ => EngineIdentifier::new("prototype"),
         }
     }
 
