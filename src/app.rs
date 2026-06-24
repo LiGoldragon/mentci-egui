@@ -94,7 +94,7 @@ impl SystemColorScheme {
                 &("org.freedesktop.appearance", "color-scheme"),
             )
             .ok()?;
-        match reply.body::<zbus::zvariant::Value<'_>>().ok()? {
+        match reply.body().deserialize::<zbus::zvariant::Value<'_>>().ok()? {
             zbus::zvariant::Value::U32(value) => Self::from_portal_value(value),
             _ => None,
         }
