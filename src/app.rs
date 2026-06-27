@@ -13,9 +13,10 @@ use mentci_lib::{
     Cmd, ComponentSocketKind, CriomeAccess, EngineEvent, ObservationModel, RenderNota,
     RenderOrigin, RenderedObject, UserEvent,
 };
+use signal_criome::{ExpiryAction, PolicyOverlapMode};
 use signal_mentci::{
     ApprovalDecision, ApprovalQuestion, ApprovalSource, InterfaceInterest, MentciReply,
-    QuestionIdentifier, SubscriberName,
+    MentciRequest, QuestionContext, QuestionIdentifier, SubscriberName,
 };
 
 use crate::control::{
@@ -25,6 +26,7 @@ use crate::control::{
     MetaControlServer, RemoteControlMode,
 };
 use crate::daemon_client::{DaemonClient, SocketKind};
+use crate::policy_editor::PolicyEditorState;
 use signal_mentci_client::{QuestionCount, TranscriptEntryCount};
 
 /// One rendered observation the shell shows: which operation produced it and
@@ -40,6 +42,18 @@ struct ObservationEntry {
 enum CardAction {
     Select(QuestionIdentifier),
     Answer(ApprovalDecision),
+}
+
+enum PolicyAction {
+    List,
+    Create,
+    Replace,
+    Cancel,
+    New,
+}
+
+struct QuestionContextRows<'a> {
+    entries: &'a [QuestionContext],
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -94,7 +108,11 @@ impl SystemColorScheme {
                 &("org.freedesktop.appearance", "color-scheme"),
             )
             .ok()?;
-        match reply.body().deserialize::<zbus::zvariant::Value<'_>>().ok()? {
+        match reply
+            .body()
+            .deserialize::<zbus::zvariant::Value<'_>>()
+            .ok()?
+        {
             zbus::zvariant::Value::U32(value) => Self::from_portal_value(value),
             _ => None,
         }
@@ -151,6 +169,7 @@ pub struct MentciEguiApp {
     meta_control_requests: mpsc::Receiver<MetaControlRequest>,
     meta_control_request_sender: mpsc::Sender<MetaControlRequest>,
     ordinary_request_in_flight: bool,
+    policy_editor: PolicyEditorState,
     remote_control_mode: RemoteControlMode,
     default_remote_control_mode: RemoteControlMode,
     meta_control_generation: u64,
@@ -179,6 +198,7 @@ impl MentciEguiApp {
             meta_control_requests,
             meta_control_request_sender,
             ordinary_request_in_flight: false,
+            policy_editor: PolicyEditorState::new(),
             remote_control_mode: RemoteControlMode::LocalOnly,
             default_remote_control_mode: RemoteControlMode::LocalOnly,
             meta_control_generation: 0,
@@ -234,15 +254,44 @@ impl MentciEguiApp {
     fn dispatch(&mut self, commands: Vec<Cmd>) {
         for command in commands {
             match command {
-                Cmd::SendRequest { request, .. } => {
-                    self.ordinary_request_in_flight = true;
-                    let sender = self.daemon_reply_sender.clone();
-                    let client = self.daemon_client.clone();
-                    self.tokio_runtime.spawn_blocking(move || {
-                        let _ = sender.send(client.send_request_typed(request));
-                    });
-                }
+                Cmd::SendRequest { request, .. } => self.dispatch_mentci_request(request),
             }
+        }
+    }
+
+    fn dispatch_mentci_request(&mut self, request: MentciRequest) {
+        if self.ordinary_request_in_flight {
+            return;
+        }
+        self.ordinary_request_in_flight = true;
+        let sender = self.daemon_reply_sender.clone();
+        let client = self.daemon_client.clone();
+        self.tokio_runtime.spawn_blocking(move || {
+            let _ = sender.send(client.send_request_typed(request));
+        });
+    }
+
+    fn apply_policy_action(&mut self, action: PolicyAction) {
+        if matches!(action, PolicyAction::New) {
+            self.policy_editor.clear_selection();
+            return;
+        }
+        if self.ordinary_request_in_flight {
+            return;
+        }
+        let request = match action {
+            PolicyAction::List => Ok(self.policy_editor.list_request()),
+            PolicyAction::Create => self.policy_editor.create_request(),
+            PolicyAction::Replace => self.policy_editor.replace_request(),
+            PolicyAction::Cancel => match self.policy_editor.cancel_request() {
+                Some(request) => Ok(request),
+                None => return,
+            },
+            PolicyAction::New => unreachable!(),
+        };
+        match request {
+            Ok(request) => self.dispatch_mentci_request(request),
+            Err(error) => self.policy_editor.record_error(&error),
         }
     }
 
@@ -408,6 +457,7 @@ impl MentciEguiApp {
     /// the renderer owns the projection.
     fn absorb_reply(&mut self, reply: MentciReply) {
         let rendered = reply.render_nota(RenderOrigin::Reply);
+        self.policy_editor.absorb_reply(&reply);
         if let MentciReply::InterfaceObservationOpened(opened) = &reply {
             self.model.on_engine_event(EngineEvent::ObservationOpened {
                 socket: ComponentSocketKind::Mentci,
@@ -429,6 +479,12 @@ impl MentciEguiApp {
             MentciReply::InterfaceObservationOpened(_) => "InterfaceObservationOpened",
             MentciReply::VerdictAccepted(_) => "VerdictAccepted",
             MentciReply::AnswerProposalAdmitted(_) => "AnswerProposalAdmitted",
+            MentciReply::InterceptPolicyCreated(_) => "InterceptPolicyCreated",
+            MentciReply::InterceptPolicyReplaced(_) => "InterceptPolicyReplaced",
+            MentciReply::InterceptPolicyCancelled(_) => "InterceptPolicyCancelled",
+            MentciReply::InterceptPoliciesListed(_) => "InterceptPoliciesListed",
+            MentciReply::ParkedRequestsFetched(_) => "ParkedRequestsFetched",
+            MentciReply::ParkedRequestAnswered(_) => "ParkedRequestAnswered",
             MentciReply::InterfaceObservationRetracted(_) => "InterfaceObservationRetracted",
             MentciReply::Rejection(_) => "Rejection",
         }
@@ -497,6 +553,165 @@ impl MentciEguiApp {
         });
     }
 
+    fn render_policy_editor(&mut self, ui: &mut egui::Ui) {
+        let local_can_drive = self.remote_control_mode.local_can_drive();
+        let can_send = local_can_drive && !self.ordinary_request_in_flight;
+        let selected = self
+            .policy_editor
+            .selected_policy()
+            .map(|identifier| identifier.as_str().to_string());
+        let mut action: Option<PolicyAction> = None;
+
+        ui.heading("intercept policies");
+        ui.horizontal_wrapped(|ui| {
+            if ui
+                .add_enabled(can_send, egui::Button::new("refresh"))
+                .clicked()
+            {
+                action = Some(PolicyAction::List);
+            }
+            if ui.button("new").clicked() {
+                action = Some(PolicyAction::New);
+            }
+            if let Some(identifier) = &selected {
+                ui.monospace(identifier);
+            }
+        });
+        if let Some(feedback) = self.policy_editor.feedback() {
+            ui.label(feedback);
+        }
+
+        ui.horizontal(|ui| {
+            ui.label("session");
+            ui.text_edit_singleline(&mut self.policy_editor.form.session_slot);
+        });
+        ui.horizontal(|ui| {
+            ui.label("target");
+            ui.text_edit_singleline(&mut self.policy_editor.form.target_key);
+        });
+        ui.label("operation names");
+        ui.add(
+            egui::TextEdit::multiline(&mut self.policy_editor.form.operation_names)
+                .desired_rows(3)
+                .desired_width(f32::INFINITY),
+        );
+        ui.horizontal(|ui| {
+            ui.label("duration seconds");
+            ui.add(
+                egui::TextEdit::singleline(&mut self.policy_editor.form.duration_seconds)
+                    .desired_width(90.0),
+            );
+            ui.label("priority");
+            ui.add(
+                egui::TextEdit::singleline(&mut self.policy_editor.form.priority)
+                    .desired_width(70.0),
+            );
+        });
+        ui.horizontal_wrapped(|ui| {
+            egui::ComboBox::from_label("expiry")
+                .selected_text(self.policy_editor.form.expiry_action_label())
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(
+                        &mut self.policy_editor.form.expiry_action,
+                        ExpiryAction::AutoApprove,
+                        "auto-approve",
+                    );
+                    ui.selectable_value(
+                        &mut self.policy_editor.form.expiry_action,
+                        ExpiryAction::AutoReject,
+                        "auto-reject",
+                    );
+                    ui.selectable_value(
+                        &mut self.policy_editor.form.expiry_action,
+                        ExpiryAction::LeaveParked,
+                        "leave-parked",
+                    );
+                });
+            egui::ComboBox::from_label("overlap")
+                .selected_text(self.policy_editor.form.overlap_mode_label())
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(
+                        &mut self.policy_editor.form.overlap_mode,
+                        PolicyOverlapMode::RejectSamePriorityOverlap,
+                        "reject overlap",
+                    );
+                    ui.selectable_value(
+                        &mut self.policy_editor.form.overlap_mode,
+                        PolicyOverlapMode::ReplaceSamePriorityOverlap,
+                        "replace overlap",
+                    );
+                });
+        });
+        ui.horizontal_wrapped(|ui| {
+            if ui
+                .add_enabled(can_send, egui::Button::new("create"))
+                .clicked()
+            {
+                action = Some(PolicyAction::Create);
+            }
+            if ui
+                .add_enabled(can_send && selected.is_some(), egui::Button::new("replace"))
+                .clicked()
+            {
+                action = Some(PolicyAction::Replace);
+            }
+            if ui
+                .add_enabled(can_send && selected.is_some(), egui::Button::new("cancel"))
+                .clicked()
+            {
+                action = Some(PolicyAction::Cancel);
+            }
+        });
+
+        ui.separator();
+        let policies = self.policy_editor.policies().to_vec();
+        if policies.is_empty() {
+            ui.label("no active policies");
+        } else {
+            egui::ScrollArea::vertical()
+                .max_height(190.0)
+                .auto_shrink([false, false])
+                .show(ui, |ui| {
+                    for policy in &policies {
+                        let is_selected = selected
+                            .as_ref()
+                            .is_some_and(|identifier| identifier == policy.identifier.as_str());
+                        if ui
+                            .selectable_label(is_selected, policy.identifier.as_str())
+                            .clicked()
+                        {
+                            self.policy_editor.select_policy(policy.identifier.clone());
+                        }
+                        ui.horizontal_wrapped(|ui| {
+                            ui.label(policy.target.payload().as_str());
+                            ui.separator();
+                            ui.label(format!("priority {}", policy.priority.into_u64()));
+                            ui.separator();
+                            ui.label(format!("{:?}", policy.expiry_action));
+                        });
+                        ui.label(
+                            policy
+                                .spirit_operation_names
+                                .names()
+                                .iter()
+                                .map(signal_criome::SpiritOperationName::as_str)
+                                .collect::<Vec<_>>()
+                                .join(", "),
+                        );
+                        ui.horizontal_wrapped(|ui| {
+                            ui.label(format!("starts {}", policy.window.starts_at.into_u64()));
+                            ui.label(format!("expires {}", policy.window.expires_at.into_u64()));
+                        });
+                        ui.add_space(6.0);
+                    }
+                });
+        }
+
+        if let Some(action) = action {
+            self.apply_policy_action(action);
+        }
+    }
+
     /// The approval card: the pending-question queue, the selected question's
     /// full content, and the closed Approve / Reject / Defer controls. This is
     /// the psyche-escalation surface made real — the shell paints the shared
@@ -544,9 +759,11 @@ impl MentciEguiApp {
             if let Some(question) = &current {
                 let source = match &question.proposal.source {
                     ApprovalSource::CriomeEscalation(_) => "criome escalation",
+                    ApprovalSource::CriomeInterception(_) => "criome interception",
                     ApprovalSource::AgentQuestion => "agent question",
                     ApprovalSource::LocalSystemPrompt => "local system prompt",
                 };
+                let context_rows = QuestionContextRows::new(question.proposal.context());
                 ui.strong(question.identifier.as_str());
                 ui.label(format!("source: {source}"));
                 ui.label(question.proposal.prompt.as_str());
@@ -554,7 +771,34 @@ impl MentciEguiApp {
                 if let Some(answer) = question.proposal.suggested_answer() {
                     ui.label(format!("suggested answer: {}", answer.as_str()));
                 }
+                if matches!(
+                    question.proposal.source,
+                    ApprovalSource::CriomeInterception(_)
+                ) {
+                    ui.horizontal_wrapped(|ui| {
+                        if let Some(target) = context_rows.body("spirit-target") {
+                            ui.label(format!("target: {target}"));
+                        }
+                        if let Some(operation) = context_rows.body("spirit-operation") {
+                            ui.label(format!("operation: {operation}"));
+                        }
+                    });
+                    if let Some(payload) = context_rows.body("raw-spirit-payload") {
+                        ui.label("raw Spirit payload");
+                        let mut body = payload.to_string();
+                        ui.add(
+                            egui::TextEdit::multiline(&mut body)
+                                .font(egui::TextStyle::Monospace)
+                                .desired_rows(8)
+                                .desired_width(f32::INFINITY)
+                                .interactive(false),
+                        );
+                    }
+                }
                 for entry in question.proposal.context() {
+                    if context_rows.is_spirit_context(entry) {
+                        continue;
+                    }
                     ui.collapsing(entry.label.as_str(), |ui| {
                         ui.monospace(entry.body.as_str());
                     });
@@ -652,6 +896,8 @@ impl eframe::App for MentciEguiApp {
             .width_range(260.0..=520.0)
             .resizable(true)
             .show(ctx, |ui| {
+                self.render_policy_editor(ui);
+                ui.separator();
                 self.render_approval_card(ui);
             });
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -663,6 +909,26 @@ impl eframe::App for MentciEguiApp {
         });
 
         ctx.request_repaint_after(std::time::Duration::from_millis(100));
+    }
+}
+
+impl<'a> QuestionContextRows<'a> {
+    fn new(entries: &'a [QuestionContext]) -> Self {
+        Self { entries }
+    }
+
+    fn body(&self, label: &str) -> Option<&'a str> {
+        self.entries
+            .iter()
+            .find(|entry| entry.label.as_str() == label)
+            .map(|entry| entry.body.as_str())
+    }
+
+    fn is_spirit_context(&self, entry: &QuestionContext) -> bool {
+        matches!(
+            entry.label.as_str(),
+            "spirit-target" | "spirit-operation" | "raw-spirit-payload"
+        )
     }
 }
 

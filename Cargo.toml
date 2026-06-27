@@ -12,11 +12,12 @@ name = "mentci-egui"
 path = "src/main.rs"
 
 [dependencies]
-nota-next    = { git = "https://github.com/LiGoldragon/nota-next.git", branch = "main" }
+nota-next    = { package = "nota", git = "https://github.com/LiGoldragon/nota-next.git", branch = "main" }
 signal-frame = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main", features = ["nota-text"] }
+signal-criome = { git = "https://github.com/LiGoldragon/signal-criome.git", branch = "main", features = ["nota-text"] }
 signal-mentci = { git = "https://github.com/LiGoldragon/signal-mentci", branch = "main", features = ["nota-text"] }
 meta-signal-mentci-client = { git = "https://github.com/LiGoldragon/meta-signal-mentci-client", branch = "main", features = ["nota-text"] }
-signal-mentci-client = { git = "https://github.com/LiGoldragon/signal-mentci-client", branch = "main", features = ["nota-text"] }
+signal-mentci-client = { git = "https://github.com/LiGoldragon/signal-mentci-client", rev = "0fd2d678f6c3", features = ["nota-text"] }
 # Re-founded client model: the egui shell consumes mentci-lib's ObservationModel
 # (MVU core keyed by component socket) and its NOTA-fallback renderer instead of
 # keeping its own approval/transcript state.

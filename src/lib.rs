@@ -3,3 +3,4 @@
 pub mod control;
 pub mod daemon_client;
 pub mod error;
+pub mod policy_editor;

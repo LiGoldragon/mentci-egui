@@ -7,6 +7,7 @@ mod app;
 mod control;
 mod daemon_client;
 mod error;
+mod policy_editor;
 
 use app::MentciEguiApp;
 
