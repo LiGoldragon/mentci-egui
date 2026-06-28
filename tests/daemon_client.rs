@@ -96,20 +96,20 @@ fn daemon_client_exposes_raw_spirit_payload_in_observed_approval_state() {
     };
     let proposal = QuestionProposal::new(
         ApprovalSource::CriomeInterception(ParkedRequestIdentifier::new("parked-request-1")),
-        PromptText::new("Authorize Spirit Record for spirit-process-main"),
+        PromptText::new("Authorize component operation Record for target spirit-process-main"),
         Some(AnswerText::new("approve")),
-        ExplanationText::new("criome parked a Spirit operation matched by intercept policy"),
+        ExplanationText::new("criome parked a component operation matched by intercept policy"),
         vec![
             QuestionContext {
-                label: ContextLabel::new("spirit-target"),
+                label: ContextLabel::new("component-target"),
                 body: ContextBody::new(spirit_context.target_key.as_str()),
             },
             QuestionContext {
-                label: ContextLabel::new("spirit-operation"),
+                label: ContextLabel::new("component-operation"),
                 body: ContextBody::new(spirit_context.operation_name.as_str()),
             },
             QuestionContext {
-                label: ContextLabel::new("raw-spirit-payload"),
+                label: ContextLabel::new("component-raw-payload"),
                 body: ContextBody::new(spirit_context.raw_payload.as_str()),
             },
         ],
@@ -129,8 +129,8 @@ fn daemon_client_exposes_raw_spirit_payload_in_observed_approval_state() {
     assert_eq!(entry.socket_kind, SocketKind::Mentci);
     assert_eq!(entry.operation, "ObserveInterfaceState");
     assert!(entry.reply_nota.contains("CriomeInterception"));
-    assert!(entry.reply_nota.contains("spirit-target"));
-    assert!(entry.reply_nota.contains("spirit-operation"));
-    assert!(entry.reply_nota.contains("raw-spirit-payload"));
+    assert!(entry.reply_nota.contains("component-target"));
+    assert!(entry.reply_nota.contains("component-operation"));
+    assert!(entry.reply_nota.contains("component-raw-payload"));
     assert!(entry.reply_nota.contains("payload shown"));
 }

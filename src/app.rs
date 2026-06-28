@@ -712,10 +712,8 @@ impl MentciEguiApp {
         }
     }
 
-    /// The approval card: the pending-question queue, the selected question's
-    /// full content, and the closed Approve / Reject / Defer controls. This is
-    /// the psyche-escalation surface made real — the shell paints the shared
-    /// model's approval cursor and feeds its decisions back through the model.
+    /// The request card paints the daemon-owned pending queue and feeds closed
+    /// decisions back through the shared model.
     fn render_approval_card(&mut self, ui: &mut egui::Ui) {
         let pending: Vec<ApprovalQuestion> = self.model.approval().pending().to_vec();
         let current = self.model.approval().current().cloned();
@@ -724,7 +722,7 @@ impl MentciEguiApp {
         let can_answer = local_can_drive && matches!(criome_access, Some(CriomeAccess::ReadWrite));
         let mut action: Option<CardAction> = None;
 
-        ui.heading("approvals");
+        ui.heading("requests");
         ui.horizontal(|ui| {
             ui.label(format!("{} pending", pending.len()));
             ui.separator();
@@ -758,8 +756,8 @@ impl MentciEguiApp {
 
             if let Some(question) = &current {
                 let source = match &question.proposal.source {
-                    ApprovalSource::CriomeEscalation(_) => "criome escalation",
-                    ApprovalSource::CriomeInterception(_) => "criome interception",
+                    ApprovalSource::CriomeEscalation(_) => "component authorization",
+                    ApprovalSource::CriomeInterception(_) => "component interception",
                     ApprovalSource::AgentQuestion => "agent question",
                     ApprovalSource::LocalSystemPrompt => "local system prompt",
                 };
@@ -776,15 +774,24 @@ impl MentciEguiApp {
                     ApprovalSource::CriomeInterception(_)
                 ) {
                     ui.horizontal_wrapped(|ui| {
-                        if let Some(target) = context_rows.body("spirit-target") {
+                        if let Some(target) = context_rows
+                            .body("component-target")
+                            .or_else(|| context_rows.body("spirit-target"))
+                        {
                             ui.label(format!("target: {target}"));
                         }
-                        if let Some(operation) = context_rows.body("spirit-operation") {
+                        if let Some(operation) = context_rows
+                            .body("component-operation")
+                            .or_else(|| context_rows.body("spirit-operation"))
+                        {
                             ui.label(format!("operation: {operation}"));
                         }
                     });
-                    if let Some(payload) = context_rows.body("raw-spirit-payload") {
-                        ui.label("raw Spirit payload");
+                    if let Some(payload) = context_rows
+                        .body("component-raw-payload")
+                        .or_else(|| context_rows.body("raw-spirit-payload"))
+                    {
+                        ui.label("raw payload");
                         let mut body = payload.to_string();
                         ui.add(
                             egui::TextEdit::multiline(&mut body)
@@ -818,7 +825,7 @@ impl MentciEguiApp {
                         }
                     });
                 } else {
-                    ui.label("observation-only — this daemon has no criome write access");
+                    ui.label("observation-only — this daemon has no component write bridge");
                 }
             }
         }
@@ -927,7 +934,12 @@ impl<'a> QuestionContextRows<'a> {
     fn is_spirit_context(&self, entry: &QuestionContext) -> bool {
         matches!(
             entry.label.as_str(),
-            "spirit-target" | "spirit-operation" | "raw-spirit-payload"
+            "component-target"
+                | "component-operation"
+                | "component-raw-payload"
+                | "spirit-target"
+                | "spirit-operation"
+                | "raw-spirit-payload"
         )
     }
 }
