@@ -25,6 +25,10 @@ Owns:
   instance remotely.
 - A Unix-socket `meta-signal-mentci-client` control endpoint for configuring
   remote-control policy.
+- Remote-control availability as explicit meta-controlled UI state. The client
+  is in local-only, remote-enabled, presentation, or dual-write mode; local-input
+  lockout and simultaneous local/remote control are visible state, never hidden
+  behavior.
 - A visible meta lane for privileged operations as `meta-signal-mentci`
   grows a live socket surface.
 - NOTA rendering for typed replies without dedicated widgets.
