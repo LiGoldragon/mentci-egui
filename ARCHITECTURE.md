@@ -89,6 +89,22 @@ ordinary socket is `Mentci`; the Mentci meta socket is `MetaMentci`. Future
 component sockets follow the same shape, for example `Criome` and
 `MetaCriome`.
 
+## Archived intent provenance
+
+The archived Spirit records routed here are already realized in the sections
+above; they are listed for traceability rather than re-stated:
+
+- `cok7` — system light/dark theme following → **Boundaries**
+  (`SystemThemeFollower`, OS preference source of truth, light fallback).
+- `nc9k` — control through the shared `signal-mentci-client` contract, with
+  remote-control availability, local-input lockout, and dual-write
+  presentation as explicit client UI state → **Boundaries** + **Runtime Flow**.
+- `xen8` — socket displays identifying the connected component and authority
+  channel (`Criome`/`MetaCriome`, not generic labels) → **Runtime Flow**.
+- `xlrk` — interactive GUI client offering ordinary observation plus a
+  meta/write mode, NOTA fallback for typed replies, shaped for long-lived
+  daemon subscriptions → **Role**, **Boundaries**, **Runtime Flow**.
+
 ## Status
 
 The old `mentci-lib` direct criome/nexus driver workbench has been removed. The
