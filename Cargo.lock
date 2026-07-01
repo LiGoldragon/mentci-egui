@@ -103,7 +103,7 @@ dependencies = [
  "objc2-foundation",
  "parking_lot",
  "percent-encoding",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
  "x11rb",
 ]
 
@@ -725,8 +725,8 @@ dependencies = [
 
 [[package]]
 name = "criome"
-version = "0.4.0"
-source = "git+https://github.com/LiGoldragon/criome?branch=main#249ac407062f7d26b67f21fa46ef3ae92f239f59"
+version = "0.4.3"
+source = "git+https://github.com/LiGoldragon/criome?branch=criome-authorization-push#4b027f7a6d63c14c5a76cbe82fc38f7ece8b7b5d"
 dependencies = [
  "blake3",
  "blst",
@@ -1060,7 +1060,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -1876,8 +1876,8 @@ dependencies = [
 
 [[package]]
 name = "mentci"
-version = "0.4.0"
-source = "git+https://github.com/LiGoldragon/mentci?branch=main#b41097194b5c18367248f0a6cdb310d41b7ce07b"
+version = "0.4.1"
+source = "git+https://github.com/LiGoldragon/mentci?branch=criome-authorization-push#95931864887423093eccfc3504850a502dd3c726"
 dependencies = [
  "criome",
  "kameo",
@@ -1921,7 +1921,7 @@ dependencies = [
 [[package]]
 name = "mentci-lib"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/mentci-lib?branch=main#16af712a3d9851f366d30f18c5156fa8d367fa76"
+source = "git+https://github.com/LiGoldragon/mentci-lib?branch=criome-authorization-push#ac2b2bdc8f37557a8e183ac86dfd61cf0403b2ff"
 dependencies = [
  "meta-signal-criome",
  "meta-signal-mentci",
@@ -1935,7 +1935,7 @@ dependencies = [
 [[package]]
 name = "meta-signal-criome"
 version = "0.3.0"
-source = "git+https://github.com/LiGoldragon/meta-signal-criome?branch=main#4814625aa23dcb0e3cee19580914ccc1a3b4aadc"
+source = "git+https://github.com/LiGoldragon/meta-signal-criome?branch=criome-authorization-push#acd203e7e07191ff83dfedcafbc9ecb2da9f87ea"
 dependencies = [
  "nota",
  "rkyv",
@@ -1948,7 +1948,7 @@ dependencies = [
 [[package]]
 name = "meta-signal-mentci"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/meta-signal-mentci?branch=main#240adb1d74ab8ece1335da69de99c7381cc44efb"
+source = "git+https://github.com/LiGoldragon/meta-signal-mentci?branch=main#2370d0d15e2c270818c42e95613aa3a2341ae8a7"
 dependencies = [
  "nota",
  "rkyv",
@@ -1960,7 +1960,7 @@ dependencies = [
 [[package]]
 name = "meta-signal-mentci-client"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/meta-signal-mentci-client?branch=main#68d8cf83a2ff7a32c304aa5375944485f9c57083"
+source = "git+https://github.com/LiGoldragon/meta-signal-mentci-client?branch=main#0a8e8b5282d65d3b164f26d685454be93b5d45d3"
 dependencies = [
  "nota",
  "rkyv",
@@ -2098,7 +2098,7 @@ checksum = "2bf50223579dc7cdcfb3bfcacf7069ff68243f8c363f62ffa99cf000a6b9c451"
 [[package]]
 name = "nota"
 version = "0.5.1"
-source = "git+https://github.com/LiGoldragon/nota-next.git?branch=main#96e64bcdbe531eb33a900eb3abbc58a095e01f76"
+source = "git+https://github.com/LiGoldragon/nota-next.git?branch=main#bea7e2840ac2cf3e384f07b5c10eeb0890cead25"
 dependencies = [
  "nota-derive",
  "rkyv",
@@ -2107,7 +2107,7 @@ dependencies = [
 [[package]]
 name = "nota-derive"
 version = "0.3.0"
-source = "git+https://github.com/LiGoldragon/nota-next.git?branch=main#96e64bcdbe531eb33a900eb3abbc58a095e01f76"
+source = "git+https://github.com/LiGoldragon/nota-next.git?branch=main#bea7e2840ac2cf3e384f07b5c10eeb0890cead25"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2688,7 +2688,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.4.15",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2701,7 +2701,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.12.1",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2722,7 +2722,7 @@ dependencies = [
 [[package]]
 name = "schema"
 version = "0.2.0"
-source = "git+https://github.com/LiGoldragon/schema-next.git?branch=main#dea9b555d76a37f099db2477ead1c758a7517f37"
+source = "git+https://github.com/LiGoldragon/schema-next.git?branch=main#e4f7382cde7ef21d0c5047c633e25f0c418d2ed7"
 dependencies = [
  "blake3",
  "nota",
@@ -2734,7 +2734,7 @@ dependencies = [
 [[package]]
 name = "schema-cc"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/schema-next.git?branch=main#dea9b555d76a37f099db2477ead1c758a7517f37"
+source = "git+https://github.com/LiGoldragon/schema-next.git?branch=main#e4f7382cde7ef21d0c5047c633e25f0c418d2ed7"
 dependencies = [
  "nota",
  "prettyplease",
@@ -2747,7 +2747,7 @@ dependencies = [
 [[package]]
 name = "schema-rust"
 version = "0.5.3"
-source = "git+https://github.com/LiGoldragon/schema-rust-next.git?branch=main#abd31f48197c7e4db1da4b04a1c75cafd7276d3a"
+source = "git+https://github.com/LiGoldragon/schema-rust-next.git?branch=main#d0d2472c3cc602614f613788e9b1198d2307931a"
 dependencies = [
  "nota",
  "prettyplease",
@@ -2774,7 +2774,7 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 [[package]]
 name = "sema"
 version = "0.1.1"
-source = "git+https://github.com/LiGoldragon/sema.git?branch=main#b13ed436e7a9af947d8cde03d0f5ff36e9e3d742"
+source = "git+https://github.com/LiGoldragon/sema.git?branch=main#3549a50c72544d3faf7ba38ade3cea07727fea2b"
 dependencies = [
  "redb",
  "rkyv",
@@ -2783,8 +2783,8 @@ dependencies = [
 
 [[package]]
 name = "sema-engine"
-version = "0.6.2"
-source = "git+https://github.com/LiGoldragon/sema-engine.git?branch=main#73eea24b294a2bdcac470111afc387e7ce06608e"
+version = "0.6.3"
+source = "git+https://github.com/LiGoldragon/sema-engine.git?branch=main#594802575f02bc2e295f2c092ad98bb2d317a058"
 dependencies = [
  "blake3",
  "rkyv",
@@ -2854,8 +2854,8 @@ checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
 
 [[package]]
 name = "signal-criome"
-version = "0.5.0"
-source = "git+https://github.com/LiGoldragon/signal-criome.git?branch=main#478d6cca0d31b670fc7aabf54994ebffa41527c4"
+version = "0.6.0"
+source = "git+https://github.com/LiGoldragon/signal-criome.git?branch=criome-authorization-push#2986f8f8ec83de14546cf8ce286738bc2aba77c9"
 dependencies = [
  "blake3",
  "blst",
@@ -2868,8 +2868,8 @@ dependencies = [
 
 [[package]]
 name = "signal-frame"
-version = "0.2.1"
-source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#d0dd5c0b66a90c1af72d45920e31c2b3049437f9"
+version = "0.3.0"
+source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#075b0d992dab071c5021842fb7fdfe0b98bfcd76"
 dependencies = [
  "nota",
  "paste",
@@ -2881,7 +2881,7 @@ dependencies = [
 [[package]]
 name = "signal-frame-macros"
 version = "0.1.1"
-source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#d0dd5c0b66a90c1af72d45920e31c2b3049437f9"
+source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#075b0d992dab071c5021842fb7fdfe0b98bfcd76"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2891,7 +2891,7 @@ dependencies = [
 [[package]]
 name = "signal-harness"
 version = "0.2.0"
-source = "git+https://github.com/LiGoldragon/signal-harness.git?branch=main#0727beb7e537472697463443d4323469e04137d4"
+source = "git+https://github.com/LiGoldragon/signal-harness.git?branch=main#52cd2ed9fc2fa48b20501acacabb8bc00aa8b103"
 dependencies = [
  "nota",
  "rkyv",
@@ -2913,7 +2913,7 @@ dependencies = [
 [[package]]
 name = "signal-introspect"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/signal-introspect.git?branch=main#cbff25f55953e293730b6503310b27f2b7c3edbe"
+source = "git+https://github.com/LiGoldragon/signal-introspect.git?branch=main#ad64de9643b35acd9883e749625595811cc92658"
 dependencies = [
  "nota",
  "rkyv",
@@ -2927,7 +2927,7 @@ dependencies = [
 [[package]]
 name = "signal-mentci"
 version = "0.2.0"
-source = "git+https://github.com/LiGoldragon/signal-mentci?branch=main#8376ee421d7d6949052b84134bf2966ea4d5d476"
+source = "git+https://github.com/LiGoldragon/signal-mentci?branch=criome-authorization-push#e9ee46f99a6149dfc21b1e6fea400e1c2a460990"
 dependencies = [
  "nota",
  "rkyv",
@@ -2940,7 +2940,7 @@ dependencies = [
 [[package]]
 name = "signal-mentci-client"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/signal-mentci-client?rev=0fd2d678f6c3#0fd2d678f6c344c83733e78f73c94c69749c8b4b"
+source = "git+https://github.com/LiGoldragon/signal-mentci-client?branch=criome-authorization-push#430e84d00b2cffcbf794c45f0b4962944c0f7cbf"
 dependencies = [
  "meta-signal-mentci",
  "meta-signal-mentci-client",
@@ -2956,7 +2956,7 @@ dependencies = [
 [[package]]
 name = "signal-message"
 version = "0.3.0"
-source = "git+https://github.com/LiGoldragon/signal-message.git?branch=main#71da67a56dba6bacd8a23f2c6c3af4cc517b35be"
+source = "git+https://github.com/LiGoldragon/signal-message.git?branch=main#e872ad66deb8235acb1d5b437b3a40f908e6fd87"
 dependencies = [
  "nota",
  "rkyv",
@@ -2968,7 +2968,7 @@ dependencies = [
 [[package]]
 name = "signal-persona"
 version = "0.2.0"
-source = "git+https://github.com/LiGoldragon/signal-persona.git?branch=main#7de74911dd17cbce6e5bc367612d85469d530f48"
+source = "git+https://github.com/LiGoldragon/signal-persona.git?branch=main#8b2ac102bc8aebe00220c1ba7896456f1ef2e1e6"
 dependencies = [
  "nota",
  "rkyv",
@@ -2979,7 +2979,7 @@ dependencies = [
 [[package]]
 name = "signal-sema"
 version = "0.2.0"
-source = "git+https://github.com/LiGoldragon/signal-sema.git?branch=main#e11901358bab47e710e3d15414141183a13c2ad6"
+source = "git+https://github.com/LiGoldragon/signal-sema.git?branch=main#c817ec2b5283975700881c2dec950a7e781b3bb6"
 dependencies = [
  "rkyv",
  "thiserror 2.0.18",
@@ -3164,7 +3164,7 @@ dependencies = [
  "getrandom 0.3.4",
  "once_cell",
  "rustix 1.1.4",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -3342,7 +3342,7 @@ dependencies = [
 [[package]]
 name = "triad-runtime"
 version = "0.6.1"
-source = "git+https://github.com/LiGoldragon/triad-runtime.git?branch=main#60e0ed7c753d35561458586ff7d870dcadf47ea5"
+source = "git+https://github.com/LiGoldragon/triad-runtime.git?branch=main#3d3207461bcbd39dd2505d0bb957b6fec30c98d9"
 dependencies = [
  "kameo",
  "rkyv",
