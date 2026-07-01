@@ -113,7 +113,14 @@ impl SystemColorScheme {
             .deserialize::<zbus::zvariant::Value<'_>>()
             .ok()?
         {
+            value => Self::from_portal_reply_value(value),
+        }
+    }
+
+    fn from_portal_reply_value(value: zbus::zvariant::Value<'_>) -> Option<Self> {
+        match value {
             zbus::zvariant::Value::U32(value) => Self::from_portal_value(value),
+            zbus::zvariant::Value::Value(value) => Self::from_portal_reply_value(*value),
             _ => None,
         }
     }
@@ -959,6 +966,18 @@ mod tests {
             Some(SystemColorScheme::Light)
         );
         assert_eq!(SystemColorScheme::from_portal_value(0), None);
+    }
+
+    #[test]
+    fn portal_variant_wrapped_color_scheme_values_map_to_egui_schemes() {
+        let value = zbus::zvariant::Value::Value(Box::new(zbus::zvariant::Value::Value(Box::new(
+            zbus::zvariant::Value::U32(1),
+        ))));
+
+        assert_eq!(
+            SystemColorScheme::from_portal_reply_value(value),
+            Some(SystemColorScheme::Dark)
+        );
     }
 
     #[test]
