@@ -12,7 +12,7 @@ name = "mentci-egui"
 path = "src/main.rs"
 
 [dependencies]
-nota-next    = { package = "nota", git = "https://github.com/LiGoldragon/nota-next.git", branch = "main" }
+nota    = { package = "nota", git = "https://github.com/LiGoldragon/nota.git", branch = "main" }
 signal-frame = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main", features = ["nota-text"] }
 signal-criome = { git = "https://github.com/LiGoldragon/signal-criome.git", branch = "criome-authorization-push", features = ["nota-text"] }
 signal-mentci = { git = "https://github.com/LiGoldragon/signal-mentci", branch = "criome-authorization-push", features = ["nota-text"] }
