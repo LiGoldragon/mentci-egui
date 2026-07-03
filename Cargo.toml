@@ -11,7 +11,24 @@ description  = "mentci-egui — interactive egui client for the mentci daemon ov
 name = "mentci-egui"
 path = "src/main.rs"
 
+# The psyche's launch command: run a real headless Claude turn (or turns) and
+# watch them appear live in the window. Needs a display, the `claude` CLI, and
+# network, so it is a manually-run demo, not part of `nix flake check` (which
+# compiles but never runs it). Guards /home/li/primary before any sandbox mkdir.
+[[bin]]
+name = "mentci-egui-session-window-demo"
+path = "src/bin/mentci-egui-session-window-demo.rs"
+
 [dependencies]
+# The live Mentci view is the CONSUMER of the harness push subscription: the
+# `signal-harness` contract carries `ClaudeSessionObservation` / the
+# `HarnessStreamEvent` stream vocabulary the canvas renders; the `harness`
+# runtime carries the producer-plane subscription types the consumer opens and
+# parks on; `kameo` names the actor handle the subscription is opened against.
+harness       = { git = "https://github.com/LiGoldragon/harness.git", branch = "main" }
+signal-harness = { git = "https://github.com/LiGoldragon/signal-harness.git", branch = "main" }
+kameo         = { git = "https://github.com/LiGoldragon/kameo.git", branch = "main", default-features = false, features = ["macros", "tracing"] }
+serde_json    = "1"
 nota-next    = { package = "nota", git = "https://github.com/LiGoldragon/nota-next.git", branch = "main" }
 signal-frame = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main", features = ["nota-text"] }
 signal-criome = { git = "https://github.com/LiGoldragon/signal-criome.git", branch = "main", features = ["nota-text"] }
@@ -26,13 +43,20 @@ eframe       = { version = "0.27", default-features = false, features = ["defaul
 egui         = "0.27"
 dark-light   = "1.1"
 thiserror    = "2"
-tokio        = { version = "1", features = ["rt-multi-thread"] }
+tokio        = { version = "1", features = ["rt-multi-thread", "macros", "sync"] }
 zbus         = "4.4"
 
 [dev-dependencies]
 mentci             = { git = "https://github.com/LiGoldragon/mentci", branch = "main" }
 meta-signal-mentci = { git = "https://github.com/LiGoldragon/meta-signal-mentci", branch = "main" }
+signal-persona     = { git = "https://github.com/LiGoldragon/signal-persona.git", branch = "main" }
 tempfile           = "3"
+
+# Unify `kameo` on the LiGoldragon fork so the harness `ActorRef` type the
+# subscription is opened against resolves to one crate, matching harness's own
+# patch.
+[patch.crates-io]
+kameo = { git = "https://github.com/LiGoldragon/kameo.git", branch = "main" }
 
 [lints.rust]
 unused = "allow"

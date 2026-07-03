@@ -33,6 +33,9 @@ pub enum Error {
 
     #[error("control reply channel failed: {0}")]
     ControlReply(String),
+
+    #[error("session stream subscription failed: {0}")]
+    SessionSubscription(String),
 }
 
 pub type Result<T> = core::result::Result<T, Error>;
