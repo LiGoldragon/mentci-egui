@@ -8,9 +8,8 @@ exposes its client-local controls through `signal-mentci-client` plus
 `meta-signal-mentci-client`.
 Linux + Mac first-class.
 
-See `ARCHITECTURE.md`.
+See `ARCHITECTURE.md` for this client's direction and shape.
 
-Project intent: lore/INTENTION.md.
 Project-wide architecture: criome/ARCHITECTURE.md.
 
 ## Status

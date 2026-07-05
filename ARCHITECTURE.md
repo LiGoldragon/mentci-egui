@@ -25,6 +25,10 @@ Owns:
   instance remotely.
 - A Unix-socket `meta-signal-mentci-client` control endpoint for configuring
   remote-control policy.
+- Remote-control availability as explicit meta-controlled UI state. The client
+  is in local-only, remote-enabled, presentation, or dual-write mode; local-input
+  lockout and simultaneous local/remote control are visible state, never hidden
+  behavior.
 - A visible meta lane for privileged operations as `meta-signal-mentci`
   grows a live socket surface.
 - NOTA rendering for typed replies without dedicated widgets.
@@ -84,6 +88,22 @@ The UI labels socket paths by component and authority channel. The Mentci
 ordinary socket is `Mentci`; the Mentci meta socket is `MetaMentci`. Future
 component sockets follow the same shape, for example `Criome` and
 `MetaCriome`.
+
+## Archived intent provenance
+
+The archived Spirit records routed here are already realized in the sections
+above; they are listed for traceability rather than re-stated:
+
+- `cok7` — system light/dark theme following → **Boundaries**
+  (`SystemThemeFollower`, OS preference source of truth, light fallback).
+- `nc9k` — control through the shared `signal-mentci-client` contract, with
+  remote-control availability, local-input lockout, and dual-write
+  presentation as explicit client UI state → **Boundaries** + **Runtime Flow**.
+- `xen8` — socket displays identifying the connected component and authority
+  channel (`Criome`/`MetaCriome`, not generic labels) → **Runtime Flow**.
+- `xlrk` — interactive GUI client offering ordinary observation plus a
+  meta/write mode, NOTA fallback for typed replies, shaped for long-lived
+  daemon subscriptions → **Role**, **Boundaries**, **Runtime Flow**.
 
 ## Status
 
