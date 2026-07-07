@@ -1,7 +1,5 @@
 # Agent instructions — mentci-egui
 
-You **MUST** read AGENTS.md at `github:ligoldragon/lore` — the workspace contract.
-
 ## Repo role
 
 The egui client for the mentci daemon.
