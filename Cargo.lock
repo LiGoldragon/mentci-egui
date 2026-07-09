@@ -103,7 +103,7 @@ dependencies = [
  "objc2-foundation",
  "parking_lot",
  "percent-encoding",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
  "x11rb",
 ]
 
@@ -725,8 +725,8 @@ dependencies = [
 
 [[package]]
 name = "criome"
-version = "0.4.3"
-source = "git+https://github.com/LiGoldragon/criome?branch=main#06c508e77c5e3dd106d065f99bf12f9a2fa079cd"
+version = "0.8.2"
+source = "git+https://github.com/LiGoldragon/criome?branch=main#a82b5145c4e4608d4e1c35b7f1a50d1675ab9814"
 dependencies = [
  "blake3",
  "blst",
@@ -736,7 +736,8 @@ dependencies = [
  "rustix 1.1.4",
  "sema-engine",
  "signal-criome",
- "signal-frame 0.3.0 (git+https://github.com/LiGoldragon/signal-frame.git?branch=main)",
+ "signal-frame",
+ "signal-router",
  "thiserror 2.0.18",
  "tokio",
  "triad-runtime",
@@ -1061,7 +1062,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -1878,7 +1879,7 @@ dependencies = [
 [[package]]
 name = "mentci"
 version = "0.4.1"
-source = "git+https://github.com/LiGoldragon/mentci?branch=main#8d4aa9a7783c0f92a9334f3b365569d9ab69765c"
+source = "git+https://github.com/LiGoldragon/mentci?branch=main#dfb073069e45597e47ddc507198924f5a7952512"
 dependencies = [
  "criome",
  "kameo",
@@ -1888,7 +1889,7 @@ dependencies = [
  "nota",
  "rkyv",
  "signal-criome",
- "signal-frame 0.3.0 (git+https://github.com/LiGoldragon/signal-frame.git?branch=main)",
+ "signal-frame",
  "signal-harness",
  "signal-introspect",
  "signal-mentci",
@@ -1910,7 +1911,7 @@ dependencies = [
  "meta-signal-mentci-client",
  "nota",
  "signal-criome",
- "signal-frame 0.3.0 (git+https://github.com/LiGoldragon/signal-frame.git?branch=main)",
+ "signal-frame",
  "signal-mentci",
  "signal-mentci-client",
  "tempfile",
@@ -1922,51 +1923,51 @@ dependencies = [
 [[package]]
 name = "mentci-lib"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/mentci-lib?branch=main#114bd4489fdc0686af18fec45ad92169b3b400ee"
+source = "git+https://github.com/LiGoldragon/mentci-lib?branch=main#c30d50abcd913a2ae6a6afa3d0a5e399a645000b"
 dependencies = [
  "meta-signal-criome",
  "meta-signal-mentci",
  "nota",
  "signal-criome",
- "signal-frame 0.3.0 (git+https://github.com/LiGoldragon/signal-frame.git?branch=main)",
+ "signal-frame",
  "signal-mentci",
  "thiserror 2.0.18",
 ]
 
 [[package]]
 name = "meta-signal-criome"
-version = "0.3.0"
-source = "git+https://github.com/LiGoldragon/meta-signal-criome?branch=main#37e4b427be02ce2a8145bf0ebbc2751d81a32861"
+version = "0.6.0"
+source = "git+https://github.com/LiGoldragon/meta-signal-criome?branch=main#fdc71cc3c753554c3826bbe3d03b64e6603ad126"
 dependencies = [
  "nota",
  "rkyv",
- "schema-rust",
+ "schema-rust 0.7.0 (git+https://github.com/LiGoldragon/schema-rust.git?rev=255823ab3d0d6c5cab26e26a8b1d60c63c52c7b4)",
  "signal-criome",
- "signal-frame 0.3.0 (git+https://github.com/LiGoldragon/signal-frame.git?branch=main)",
+ "signal-frame",
  "thiserror 2.0.18",
 ]
 
 [[package]]
 name = "meta-signal-mentci"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/meta-signal-mentci?branch=main#009a198360d7c8f4327af1dac4353e91b11f7770"
+source = "git+https://github.com/LiGoldragon/meta-signal-mentci?branch=main#838a6e0d25d9b4633075e86c835ca40d2fb23e65"
 dependencies = [
  "nota",
  "rkyv",
- "schema-rust",
- "signal-frame 0.3.0 (git+https://github.com/LiGoldragon/signal-frame.git?branch=main)",
+ "schema-rust 0.7.0 (git+https://github.com/LiGoldragon/schema-rust.git?branch=main)",
+ "signal-frame",
  "thiserror 2.0.18",
 ]
 
 [[package]]
 name = "meta-signal-mentci-client"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/meta-signal-mentci-client?branch=main#dbac7f4c6fb19471f1f8836ade7326fa4412a598"
+source = "git+https://github.com/LiGoldragon/meta-signal-mentci-client?branch=main#e10de301e829a381cb370e26744a4734fd7e265c"
 dependencies = [
  "nota",
  "rkyv",
- "schema-rust",
- "signal-frame 0.3.0 (git+https://github.com/LiGoldragon/signal-frame.git?branch=main)",
+ "schema-rust 0.7.0 (git+https://github.com/LiGoldragon/schema-rust.git?branch=main)",
+ "signal-frame",
  "thiserror 2.0.18",
 ]
 
@@ -2099,7 +2100,7 @@ checksum = "2bf50223579dc7cdcfb3bfcacf7069ff68243f8c363f62ffa99cf000a6b9c451"
 [[package]]
 name = "nota"
 version = "0.5.1"
-source = "git+https://github.com/LiGoldragon/nota.git?branch=main#bea7e2840ac2cf3e384f07b5c10eeb0890cead25"
+source = "git+https://github.com/LiGoldragon/nota.git?branch=main#d25c08a87b897f2eac28621fb6c3d25801cdccfc"
 dependencies = [
  "nota-derive",
  "rkyv",
@@ -2108,7 +2109,7 @@ dependencies = [
 [[package]]
 name = "nota-derive"
 version = "0.3.0"
-source = "git+https://github.com/LiGoldragon/nota.git?branch=main#bea7e2840ac2cf3e384f07b5c10eeb0890cead25"
+source = "git+https://github.com/LiGoldragon/nota.git?branch=main#d25c08a87b897f2eac28621fb6c3d25801cdccfc"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2689,7 +2690,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.4.15",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2702,7 +2703,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.12.1",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2721,21 +2722,21 @@ dependencies = [
 ]
 
 [[package]]
-name = "schema"
+name = "schema-language"
 version = "0.2.0"
-source = "git+https://github.com/LiGoldragon/schema.git?branch=main#a393c8c822cea737d7ed8e823eae7d821ea19bf2"
+source = "git+https://github.com/LiGoldragon/schema-language.git?rev=6aae825d668e3f607a2754afa6b7d94e9f246c41#6aae825d668e3f607a2754afa6b7d94e9f246c41"
 dependencies = [
  "blake3",
  "nota",
  "rkyv",
- "schema-cc",
+ "schema-language-cc",
  "thiserror 2.0.18",
 ]
 
 [[package]]
-name = "schema-cc"
+name = "schema-language-cc"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/schema.git?branch=main#a393c8c822cea737d7ed8e823eae7d821ea19bf2"
+source = "git+https://github.com/LiGoldragon/schema-language.git?rev=6aae825d668e3f607a2754afa6b7d94e9f246c41#6aae825d668e3f607a2754afa6b7d94e9f246c41"
 dependencies = [
  "nota",
  "prettyplease",
@@ -2747,14 +2748,29 @@ dependencies = [
 
 [[package]]
 name = "schema-rust"
-version = "0.5.3"
-source = "git+https://github.com/LiGoldragon/schema-rust.git?branch=main#72c71ffc558fee0d29c5b0517013de46e0307597"
+version = "0.7.0"
+source = "git+https://github.com/LiGoldragon/schema-rust.git?branch=main#f3b4563163dd11ba1cbbcca8081701ab7830b8f5"
 dependencies = [
  "nota",
  "prettyplease",
  "proc-macro2",
  "quote",
- "schema",
+ "schema-language",
+ "syn 2.0.118",
+ "thiserror 2.0.18",
+ "triad-runtime",
+]
+
+[[package]]
+name = "schema-rust"
+version = "0.7.0"
+source = "git+https://github.com/LiGoldragon/schema-rust.git?rev=255823ab3d0d6c5cab26e26a8b1d60c63c52c7b4#255823ab3d0d6c5cab26e26a8b1d60c63c52c7b4"
+dependencies = [
+ "nota",
+ "prettyplease",
+ "proc-macro2",
+ "quote",
+ "schema-language",
  "syn 2.0.118",
  "thiserror 2.0.18",
  "triad-runtime",
@@ -2775,7 +2791,7 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 [[package]]
 name = "sema"
 version = "0.1.1"
-source = "git+https://github.com/LiGoldragon/sema.git?branch=main#3549a50c72544d3faf7ba38ade3cea07727fea2b"
+source = "git+https://github.com/LiGoldragon/sema.git?branch=main#51d7927c872f0df12791bad8d39a4db6433b01a1"
 dependencies = [
  "redb",
  "rkyv",
@@ -2784,13 +2800,13 @@ dependencies = [
 
 [[package]]
 name = "sema-engine"
-version = "0.6.3"
-source = "git+https://github.com/LiGoldragon/sema-engine.git?branch=main#594802575f02bc2e295f2c092ad98bb2d317a058"
+version = "0.7.0"
+source = "git+https://github.com/LiGoldragon/sema-engine.git?branch=main#b3b5fb714412f820f870c290a6cb7800acb9bdec"
 dependencies = [
  "blake3",
  "rkyv",
  "sema",
- "signal-frame 0.3.0 (git+https://github.com/LiGoldragon/signal-frame.git?branch=main)",
+ "signal-frame",
  "signal-sema",
  "thiserror 2.0.18",
 ]
@@ -2855,55 +2871,34 @@ checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
 
 [[package]]
 name = "signal-criome"
-version = "0.6.0"
-source = "git+https://github.com/LiGoldragon/signal-criome.git?branch=main#b4bfeecef41a05a6a93b7909976ab5312a17fa46"
+version = "0.11.0"
+source = "git+https://github.com/LiGoldragon/signal-criome.git?branch=main#1c5d99e368f7bd4f5a8755956460f8be6e85fd99"
 dependencies = [
  "blake3",
  "blst",
  "nota",
  "rkyv",
- "schema-rust",
- "signal-frame 0.3.0 (git+https://github.com/LiGoldragon/signal-frame.git?branch=main)",
+ "schema-rust 0.7.0 (git+https://github.com/LiGoldragon/schema-rust.git?rev=255823ab3d0d6c5cab26e26a8b1d60c63c52c7b4)",
+ "signal-frame",
  "thiserror 2.0.18",
 ]
 
 [[package]]
 name = "signal-frame"
 version = "0.3.0"
-source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#44d22a07e75e6d2ff13581a5bb84d47c6ef35e97"
+source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#fd7909d1497b7bb18751521387a1087cd9e7c91c"
 dependencies = [
  "nota",
  "paste",
  "rkyv",
- "signal-frame-macros 0.1.1 (git+https://github.com/LiGoldragon/signal-frame.git?branch=main)",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "signal-frame"
-version = "0.3.0"
-source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#0027ea3cef353b1c168ca6862e40c6077a853642"
-dependencies = [
- "paste",
- "rkyv",
- "signal-frame-macros 0.1.1 (git+https://github.com/LiGoldragon/signal-frame.git?branch=main)",
+ "signal-frame-macros",
  "thiserror 2.0.18",
 ]
 
 [[package]]
 name = "signal-frame-macros"
 version = "0.1.1"
-source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#44d22a07e75e6d2ff13581a5bb84d47c6ef35e97"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.118",
-]
-
-[[package]]
-name = "signal-frame-macros"
-version = "0.1.1"
-source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#0027ea3cef353b1c168ca6862e40c6077a853642"
+source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=main#fd7909d1497b7bb18751521387a1087cd9e7c91c"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2913,11 +2908,11 @@ dependencies = [
 [[package]]
 name = "signal-harness"
 version = "0.3.0"
-source = "git+https://github.com/LiGoldragon/signal-harness.git?branch=main#4d9f5879ead06ccbf9221b0f5bef5c055b9acd9f"
+source = "git+https://github.com/LiGoldragon/signal-harness.git?branch=main#ad7ae26e1c31265e98e65ae01ba38bb7d8b5a68b"
 dependencies = [
  "nota",
  "rkyv",
- "signal-frame 0.3.0 (git+https://github.com/LiGoldragon/signal-frame.git?branch=main)",
+ "signal-frame",
  "signal-persona",
  "thiserror 2.0.18",
 ]
@@ -2935,11 +2930,11 @@ dependencies = [
 [[package]]
 name = "signal-introspect"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/signal-introspect.git?branch=main#3218655d675fefa1cb549286ed03f25fc2a67013"
+source = "git+https://github.com/LiGoldragon/signal-introspect.git?branch=main#383742400f119ad50b65c8c43888ea6dff03e9e1"
 dependencies = [
  "nota",
  "rkyv",
- "signal-frame 0.3.0 (git+https://github.com/LiGoldragon/signal-frame.git?branch=main)",
+ "signal-frame",
  "signal-message",
  "signal-persona",
  "thiserror 2.0.18",
@@ -2949,28 +2944,28 @@ dependencies = [
 [[package]]
 name = "signal-mentci"
 version = "0.2.0"
-source = "git+https://github.com/LiGoldragon/signal-mentci?branch=main#a1792c99ea5cb8f25bf547a7b26a5a1b0b669f53"
+source = "git+https://github.com/LiGoldragon/signal-mentci?branch=main#11c40dff57e91db44c6bd3eb12da3f8073ee61f1"
 dependencies = [
  "nota",
  "rkyv",
- "schema-rust",
+ "schema-rust 0.7.0 (git+https://github.com/LiGoldragon/schema-rust.git?branch=main)",
  "signal-criome",
- "signal-frame 0.3.0 (git+https://github.com/LiGoldragon/signal-frame.git?branch=main)",
+ "signal-frame",
  "thiserror 2.0.18",
 ]
 
 [[package]]
 name = "signal-mentci-client"
 version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/signal-mentci-client?branch=main#f14c8b8eb2eefdc7c33b881f164d30351857eecb"
+source = "git+https://github.com/LiGoldragon/signal-mentci-client?branch=main#67809a7c089a9e922229fc11580ec698db2c7ec2"
 dependencies = [
  "meta-signal-mentci",
  "meta-signal-mentci-client",
  "nota",
  "rkyv",
- "schema-rust",
+ "schema-rust 0.7.0 (git+https://github.com/LiGoldragon/schema-rust.git?branch=main)",
  "signal-criome",
- "signal-frame 0.3.0 (git+https://github.com/LiGoldragon/signal-frame.git?branch=main)",
+ "signal-frame",
  "signal-mentci",
  "thiserror 2.0.18",
 ]
@@ -2978,30 +2973,41 @@ dependencies = [
 [[package]]
 name = "signal-message"
 version = "0.3.0"
-source = "git+https://github.com/LiGoldragon/signal-message.git?branch=main#0bd080fcd739bde92dbb76b83a6084541a31675a"
+source = "git+https://github.com/LiGoldragon/signal-message.git?branch=main#892a2097c145cd5ef8b1fce5d1c0576b500d3789"
 dependencies = [
  "nota",
  "rkyv",
- "schema-rust",
- "signal-frame 0.3.0 (git+https://github.com/LiGoldragon/signal-frame.git?branch=main)",
+ "schema-rust 0.7.0 (git+https://github.com/LiGoldragon/schema-rust.git?branch=main)",
+ "signal-frame",
  "thiserror 2.0.18",
 ]
 
 [[package]]
 name = "signal-persona"
 version = "0.2.0"
-source = "git+https://github.com/LiGoldragon/signal-persona.git?branch=main#9de82cd3a11270dd3c38ed507553c78ea703b25f"
+source = "git+https://github.com/LiGoldragon/signal-persona.git?branch=main#9d448f19d0147ef8c4b502c04e6fadfc06fc31ce"
 dependencies = [
  "nota",
  "rkyv",
- "schema-rust",
- "signal-frame 0.3.0 (git+https://github.com/LiGoldragon/signal-frame.git?branch=main)",
+ "schema-rust 0.7.0 (git+https://github.com/LiGoldragon/schema-rust.git?branch=main)",
+ "signal-frame",
+]
+
+[[package]]
+name = "signal-router"
+version = "0.5.0"
+source = "git+https://github.com/LiGoldragon/signal-router.git?branch=main#501308dd9479ba96778bb08344b952a4629c07b4"
+dependencies = [
+ "rkyv",
+ "schema-rust 0.7.0 (git+https://github.com/LiGoldragon/schema-rust.git?branch=main)",
+ "signal-frame",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
 name = "signal-sema"
 version = "0.2.0"
-source = "git+https://github.com/LiGoldragon/signal-sema.git?branch=main#c817ec2b5283975700881c2dec950a7e781b3bb6"
+source = "git+https://github.com/LiGoldragon/signal-sema.git?branch=main#8d4a0223efe59b36ac79d154d15961084eef286b"
 dependencies = [
  "rkyv",
  "thiserror 2.0.18",
@@ -3186,7 +3192,7 @@ dependencies = [
  "getrandom 0.3.4",
  "once_cell",
  "rustix 1.1.4",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -3364,12 +3370,12 @@ dependencies = [
 [[package]]
 name = "triad-runtime"
 version = "0.6.1"
-source = "git+https://github.com/LiGoldragon/triad-runtime.git?branch=main#f9a6a7c8ab50dbd5b5a8ef7bfd7ea8c9acb713e1"
+source = "git+https://github.com/LiGoldragon/triad-runtime.git?branch=main#895d2e6b9023b2d901fe1ab20e6f8f431c6113b7"
 dependencies = [
  "kameo",
  "rkyv",
  "rustix 1.1.4",
- "signal-frame 0.3.0 (git+https://github.com/LiGoldragon/signal-frame.git?branch=main)",
+ "signal-frame",
  "thiserror 2.0.18",
  "tokio",
 ]
