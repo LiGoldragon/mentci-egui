@@ -102,7 +102,7 @@ fn daemon_client_exposes_raw_spirit_payload_in_observed_approval_state() {
         vec![
             QuestionContext {
                 label: ContextLabel::new("component-target"),
-                body: ContextBody::new(spirit_context.target_key.as_str()),
+                body: ContextBody::new(spirit_context.intercept_target_selector_key.as_str()),
             },
             QuestionContext {
                 label: ContextLabel::new("component-operation"),

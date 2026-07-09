@@ -67,8 +67,8 @@ impl DaemonClient {
 
     pub fn observe_interface_state(&self) -> crate::error::Result<DaemonTranscriptEntry> {
         let request = MentciRequest::ObserveInterfaceState(InterfaceStateObservation {
-            subscriber: SubscriberName::new("mentci-egui"),
-            interest: InterfaceInterest::FullInterfaceState,
+            subscriber_name: SubscriberName::new("mentci-egui"),
+            interface_interest: InterfaceInterest::FullInterfaceState,
         });
         let request_nota = request.to_nota();
         let frame = MentciFrame::new(MentciFrameBody::Request {
@@ -91,11 +91,11 @@ impl DaemonClient {
     /// fallback rendering.
     pub fn observe_interface_state_typed(
         &self,
-        interest: InterfaceInterest,
+        interface_interest: InterfaceInterest,
     ) -> crate::error::Result<MentciReply> {
         let request = MentciRequest::ObserveInterfaceState(InterfaceStateObservation {
-            subscriber: SubscriberName::new("mentci-egui"),
-            interest,
+            subscriber_name: SubscriberName::new("mentci-egui"),
+            interface_interest,
         });
         let frame = MentciFrame::new(MentciFrameBody::Request {
             exchange: self.exchange(),

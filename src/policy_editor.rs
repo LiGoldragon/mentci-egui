@@ -70,19 +70,25 @@ impl PolicyForm {
         let duration = self.duration_nanos()?;
         let priority = self.priority()?;
         Ok(InterceptPolicyProposal {
-            session_slot: MentciSessionSlot::new(session_slot),
-            target: InterceptTargetSelector::new(SpiritProcessKey::new(target_key)),
+            mentci_session_slot: MentciSessionSlot::new(session_slot),
+            intercept_target_selector: InterceptTargetSelector::new(SpiritProcessKey::new(
+                target_key,
+            )),
             spirit_operation_names: SpiritOperationNames::from_names(self.operation_names()?),
-            duration,
+            policy_duration_nanos: duration,
             expiry_action: self.expiry_action,
-            priority,
-            overlap_mode: self.overlap_mode,
+            policy_priority: priority,
+            policy_overlap_mode: self.overlap_mode,
         })
     }
 
     pub fn absorb_policy(&mut self, policy: &InterceptPolicy) {
-        self.session_slot = policy.session_slot.as_str().to_string();
-        self.target_key = policy.target.payload().as_str().to_string();
+        self.session_slot = policy.mentci_session_slot.as_str().to_string();
+        self.target_key = policy
+            .intercept_target_selector
+            .payload()
+            .as_str()
+            .to_string();
         self.operation_names = policy
             .spirit_operation_names
             .names()
@@ -90,9 +96,12 @@ impl PolicyForm {
             .map(SpiritOperationName::as_str)
             .collect::<Vec<_>>()
             .join("\n");
-        self.duration_seconds = policy.window.duration_seconds().to_string();
+        self.duration_seconds = policy
+            .intercept_policy_window
+            .duration_seconds()
+            .to_string();
         self.expiry_action = policy.expiry_action;
-        self.priority = policy.priority.into_u64().to_string();
+        self.priority = policy.policy_priority.into_u64().to_string();
         self.overlap_mode = PolicyOverlapMode::ReplaceSamePriorityOverlap;
     }
 
@@ -214,10 +223,13 @@ impl PolicyEditorState {
         if let Some(policy) = self
             .policies
             .iter()
-            .find(|policy| policy.identifier == identifier)
+            .find(|policy| policy.intercept_policy_identifier == identifier)
         {
             self.form.absorb_policy(policy);
-            self.feedback = Some(format!("editing {}", policy.identifier.as_str()));
+            self.feedback = Some(format!(
+                "editing {}",
+                policy.intercept_policy_identifier.as_str()
+            ));
         }
     }
 
@@ -236,17 +248,24 @@ impl PolicyEditorState {
             MentciReply::InterceptPoliciesListed(policies) => self.absorb_policy_list(policies),
             MentciReply::InterceptPolicyCreated(policy) => {
                 self.upsert_policy(policy.clone());
-                self.selected_policy = Some(policy.identifier.clone());
-                self.feedback = Some(format!("created {}", policy.identifier.as_str()));
+                self.selected_policy = Some(policy.intercept_policy_identifier.clone());
+                self.feedback = Some(format!(
+                    "created {}",
+                    policy.intercept_policy_identifier.as_str()
+                ));
             }
             MentciReply::InterceptPolicyReplaced(policy) => {
                 self.upsert_policy(policy.clone());
-                self.selected_policy = Some(policy.identifier.clone());
-                self.feedback = Some(format!("replaced {}", policy.identifier.as_str()));
+                self.selected_policy = Some(policy.intercept_policy_identifier.clone());
+                self.feedback = Some(format!(
+                    "replaced {}",
+                    policy.intercept_policy_identifier.as_str()
+                ));
             }
             MentciReply::InterceptPolicyCancelled(identifier) => {
-                self.policies
-                    .retain(|policy| policy.identifier.as_str() != identifier.as_str());
+                self.policies.retain(|policy| {
+                    policy.intercept_policy_identifier.as_str() != identifier.as_str()
+                });
                 if self
                     .selected_policy
                     .as_ref()
@@ -270,18 +289,17 @@ impl PolicyEditorState {
             !self
                 .policies
                 .iter()
-                .any(|policy| policy.identifier.as_str() == identifier.as_str())
+                .any(|policy| policy.intercept_policy_identifier.as_str() == identifier.as_str())
         }) {
             self.selected_policy = None;
         }
     }
 
     fn upsert_policy(&mut self, policy: InterceptPolicy) {
-        if let Some(existing) = self
-            .policies
-            .iter_mut()
-            .find(|existing| existing.identifier.as_str() == policy.identifier.as_str())
-        {
+        if let Some(existing) = self.policies.iter_mut().find(|existing| {
+            existing.intercept_policy_identifier.as_str()
+                == policy.intercept_policy_identifier.as_str()
+        }) {
             *existing = policy;
         } else {
             self.policies.push(policy);
