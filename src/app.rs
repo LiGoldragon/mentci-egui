@@ -334,7 +334,7 @@ impl MentciEguiApp {
             self.model
                 .approval()
                 .current()
-                .map(|question| question.identifier.clone()),
+                .map(|question| question.question_identifier.clone()),
             self.ordinary_request_in_flight,
             TranscriptEntryCount::new(self.entries.len() as u64),
         )
@@ -348,16 +348,16 @@ impl MentciEguiApp {
             GuiControlInput::ObserveState(_) => GuiControlOutput::State(self.control_state()),
             GuiControlInput::ObserveComponent(observation) => {
                 let commands = self.model.on_user_event(UserEvent::Observe {
-                    socket: observation.socket,
-                    interest: observation.interest,
+                    socket: observation.component_socket_kind,
+                    interest: observation.interface_interest,
                 });
                 self.dispatch(commands);
                 GuiControlOutput::Accepted(self.control_state())
             }
             GuiControlInput::RetractObservation(retraction) => {
                 let commands = self.model.on_user_event(UserEvent::RetractObservation {
-                    socket: retraction.socket,
-                    token: retraction.token,
+                    socket: retraction.component_socket_kind,
+                    token: retraction.subscription_token,
                 });
                 self.dispatch(commands);
                 GuiControlOutput::Accepted(self.control_state())
@@ -367,12 +367,10 @@ impl MentciEguiApp {
                 GuiControlOutput::Accepted(self.control_state())
             }
             GuiControlInput::AnswerQuestion(verdict) => {
-                let known = self
-                    .model
-                    .approval()
-                    .pending()
-                    .iter()
-                    .any(|question| question.identifier == verdict.question);
+                let known =
+                    self.model.approval().pending().iter().any(|question| {
+                        question.question_identifier == verdict.question_identifier
+                    });
                 if !known {
                     return GuiControlOutput::rejected(GuiControlRejectionReason::UnknownQuestion);
                 }
@@ -391,8 +389,8 @@ impl MentciEguiApp {
             }
             GuiControlInput::PushQuestion(presentation) => {
                 let commands = self.model.on_user_event(UserEvent::PushQuestion {
-                    socket: presentation.socket,
-                    proposal: presentation.proposal,
+                    socket: presentation.component_socket_kind,
+                    proposal: presentation.question_proposal,
                 });
                 self.dispatch(commands);
                 GuiControlOutput::Accepted(self.control_state())
@@ -410,7 +408,7 @@ impl MentciEguiApp {
     fn apply_meta_control_input(&mut self, input: MetaControlInput) -> MetaControlOutput {
         match input {
             MetaControlInput::Configure(configuration) => {
-                self.default_remote_control_mode = configuration.default_remote_control;
+                self.default_remote_control_mode = configuration.remote_control_mode;
                 self.remote_control_mode = self.default_remote_control_mode;
                 self.meta_control_generation += 1;
                 MetaControlOutput::configured(MetaControlConfigurationGeneration::new(
@@ -431,8 +429,8 @@ impl MentciEguiApp {
                 }
                 MetaControlOutput::RemoteControlReset(
                     meta_signal_mentci_client::RemoteControlReset {
-                        mode: self.remote_control_mode,
-                        scope,
+                        remote_control_mode: self.remote_control_mode,
+                        remote_reset_scope: scope,
                     },
                 )
             }
@@ -680,19 +678,23 @@ impl MentciEguiApp {
                 .auto_shrink([false, false])
                 .show(ui, |ui| {
                     for policy in &policies {
-                        let is_selected = selected
-                            .as_ref()
-                            .is_some_and(|identifier| identifier == policy.identifier.as_str());
+                        let is_selected = selected.as_ref().is_some_and(|identifier| {
+                            identifier == policy.intercept_policy_identifier.as_str()
+                        });
                         if ui
-                            .selectable_label(is_selected, policy.identifier.as_str())
+                            .selectable_label(
+                                is_selected,
+                                policy.intercept_policy_identifier.as_str(),
+                            )
                             .clicked()
                         {
-                            self.policy_editor.select_policy(policy.identifier.clone());
+                            self.policy_editor
+                                .select_policy(policy.intercept_policy_identifier.clone());
                         }
                         ui.horizontal_wrapped(|ui| {
-                            ui.label(policy.target.payload().as_str());
+                            ui.label(policy.intercept_target_selector.payload().as_str());
                             ui.separator();
-                            ui.label(format!("priority {}", policy.priority.into_u64()));
+                            ui.label(format!("priority {}", policy.policy_priority.into_u64()));
                             ui.separator();
                             ui.label(format!("{:?}", policy.expiry_action));
                         });
@@ -706,8 +708,14 @@ impl MentciEguiApp {
                                 .join(", "),
                         );
                         ui.horizontal_wrapped(|ui| {
-                            ui.label(format!("starts {}", policy.window.starts_at.into_u64()));
-                            ui.label(format!("expires {}", policy.window.expires_at.into_u64()));
+                            ui.label(format!(
+                                "starts {}",
+                                policy.intercept_policy_window.starts_at.into_u64()
+                            ));
+                            ui.label(format!(
+                                "expires {}",
+                                policy.intercept_policy_window.expires_at.into_u64()
+                            ));
                         });
                         ui.add_space(6.0);
                     }
@@ -750,34 +758,37 @@ impl MentciEguiApp {
         } else {
             for question in &pending {
                 let is_current = current.as_ref().is_some_and(|selected| {
-                    selected.identifier.as_str() == question.identifier.as_str()
+                    selected.question_identifier.as_str() == question.question_identifier.as_str()
                 });
                 if ui
-                    .selectable_label(is_current, question.identifier.as_str())
+                    .selectable_label(is_current, question.question_identifier.as_str())
                     .clicked()
                 {
-                    action = Some(CardAction::Select(question.identifier.clone()));
+                    action = Some(CardAction::Select(question.question_identifier.clone()));
                 }
             }
             ui.separator();
 
             if let Some(question) = &current {
-                let source = match &question.proposal.source {
+                let source = match &question.question_proposal.approval_source {
                     ApprovalSource::CriomeEscalation(_) => "component authorization",
                     ApprovalSource::CriomeInterception(_) => "component interception",
                     ApprovalSource::AgentQuestion => "agent question",
                     ApprovalSource::LocalSystemPrompt => "local system prompt",
                 };
-                let context_rows = QuestionContextRows::new(question.proposal.context());
-                ui.strong(question.identifier.as_str());
+                let context_rows = QuestionContextRows::new(question.question_proposal.context());
+                ui.strong(question.question_identifier.as_str());
                 ui.label(format!("source: {source}"));
-                ui.label(question.proposal.prompt.as_str());
-                ui.label(format!("why: {}", question.proposal.explanation.as_str()));
-                if let Some(answer) = question.proposal.suggested_answer() {
+                ui.label(question.question_proposal.prompt_text.as_str());
+                ui.label(format!(
+                    "why: {}",
+                    question.question_proposal.explanation_text.as_str()
+                ));
+                if let Some(answer) = question.question_proposal.suggested_answer() {
                     ui.label(format!("suggested answer: {}", answer.as_str()));
                 }
                 if matches!(
-                    question.proposal.source,
+                    &question.question_proposal.approval_source,
                     ApprovalSource::CriomeInterception(_)
                 ) {
                     ui.horizontal_wrapped(|ui| {
@@ -809,12 +820,12 @@ impl MentciEguiApp {
                         );
                     }
                 }
-                for entry in question.proposal.context() {
+                for entry in question.question_proposal.context() {
                     if context_rows.is_spirit_context(entry) {
                         continue;
                     }
-                    ui.collapsing(entry.label.as_str(), |ui| {
-                        ui.monospace(entry.body.as_str());
+                    ui.collapsing(entry.context_label.as_str(), |ui| {
+                        ui.monospace(entry.context_body.as_str());
                     });
                 }
                 ui.add_space(6.0);
@@ -880,8 +891,8 @@ impl MentciEguiApp {
         ui.heading("panes");
         for pane in panes {
             egui::Frame::group(ui.style()).show(ui, |ui| {
-                ui.strong(pane.pane.as_str());
-                let mut body = pane.body.as_str().to_owned();
+                ui.strong(pane.pane_label.as_str());
+                let mut body = pane.context_body.as_str().to_owned();
                 ui.add(
                     egui::TextEdit::multiline(&mut body)
                         .font(egui::TextStyle::Monospace)
@@ -934,13 +945,13 @@ impl<'a> QuestionContextRows<'a> {
     fn body(&self, label: &str) -> Option<&'a str> {
         self.entries
             .iter()
-            .find(|entry| entry.label.as_str() == label)
-            .map(|entry| entry.body.as_str())
+            .find(|entry| entry.context_label.as_str() == label)
+            .map(|entry| entry.context_body.as_str())
     }
 
     fn is_spirit_context(&self, entry: &QuestionContext) -> bool {
         matches!(
-            entry.label.as_str(),
+            entry.context_label.as_str(),
             "component-target"
                 | "component-operation"
                 | "component-raw-payload"
@@ -1003,8 +1014,8 @@ mod tests {
 
         let output = app.apply_control_input(GuiControlInput::observe_component(
             signal_mentci_client::ComponentObservation {
-                socket: ComponentSocketKind::Mentci,
-                interest: InterfaceInterest::FullInterfaceState,
+                component_socket_kind: ComponentSocketKind::Mentci,
+                interface_interest: InterfaceInterest::FullInterfaceState,
             },
         ));
 
@@ -1023,8 +1034,8 @@ mod tests {
 
         let observed = app.apply_control_input(GuiControlInput::observe_component(
             signal_mentci_client::ComponentObservation {
-                socket: ComponentSocketKind::Mentci,
-                interest: InterfaceInterest::FullInterfaceState,
+                component_socket_kind: ComponentSocketKind::Mentci,
+                interface_interest: InterfaceInterest::FullInterfaceState,
             },
         ));
         assert!(matches!(observed, GuiControlOutput::Accepted(_)));

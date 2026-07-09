@@ -88,11 +88,11 @@ fn daemon_client_exposes_raw_spirit_payload_in_observed_approval_state() {
     });
 
     let spirit_context = SpiritAuthorizationContext {
-        operation_name: SpiritOperationName::new("Record"),
-        raw_payload: RawSpiritOperationPayload::new(
+        spirit_operation_name: SpiritOperationName::new("Record"),
+        raw_spirit_operation_payload: RawSpiritOperationPayload::new(
             "(Record (([(Technology Software)] Decision [payload shown] High Minimum Zero [])))",
         ),
-        target_key: SpiritProcessKey::new("spirit-process-main"),
+        spirit_process_key: SpiritProcessKey::new("spirit-process-main"),
     };
     let proposal = QuestionProposal::new(
         ApprovalSource::CriomeInterception(ParkedRequestIdentifier::new("parked-request-1")),
@@ -101,16 +101,18 @@ fn daemon_client_exposes_raw_spirit_payload_in_observed_approval_state() {
         ExplanationText::new("criome parked a component operation matched by intercept policy"),
         vec![
             QuestionContext {
-                label: ContextLabel::new("component-target"),
-                body: ContextBody::new(spirit_context.intercept_target_selector_key.as_str()),
+                context_label: ContextLabel::new("component-target"),
+                context_body: ContextBody::new(spirit_context.spirit_process_key.as_str()),
             },
             QuestionContext {
-                label: ContextLabel::new("component-operation"),
-                body: ContextBody::new(spirit_context.operation_name.as_str()),
+                context_label: ContextLabel::new("component-operation"),
+                context_body: ContextBody::new(spirit_context.spirit_operation_name.as_str()),
             },
             QuestionContext {
-                label: ContextLabel::new("component-raw-payload"),
-                body: ContextBody::new(spirit_context.raw_payload.as_str()),
+                context_label: ContextLabel::new("component-raw-payload"),
+                context_body: ContextBody::new(
+                    spirit_context.raw_spirit_operation_payload.as_str(),
+                ),
             },
         ],
     );

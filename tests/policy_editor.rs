@@ -5,12 +5,12 @@ use signal_mentci::MentciRequest;
 #[test]
 fn policy_editor_builds_create_request_from_form_fields() {
     let mut editor = PolicyEditorState::new();
-    editor.form.mentci_session_slot = "session-a".to_string();
-    editor.form.intercept_target_selector_key = "spirit-process-main".to_string();
+    editor.form.session_slot = "session-a".to_string();
+    editor.form.target_key = "spirit-process-main".to_string();
     editor.form.operation_names = "Record\nObserve".to_string();
     editor.form.duration_seconds = "12".to_string();
     editor.form.expiry_action = ExpiryAction::AutoReject;
-    editor.form.policy_priority = "7".to_string();
+    editor.form.priority = "7".to_string();
     editor.form.overlap_mode = PolicyOverlapMode::RejectSamePriorityOverlap;
 
     let request = editor.create_request().expect("create request");
@@ -24,11 +24,11 @@ fn policy_editor_builds_create_request_from_form_fields() {
         "spirit-process-main"
     );
     assert_eq!(proposal.spirit_operation_names.names().len(), 2);
-    assert_eq!(proposal.duration.into_u64(), 12_000_000_000);
+    assert_eq!(proposal.policy_duration_nanos.into_u64(), 12_000_000_000);
     assert_eq!(proposal.expiry_action, ExpiryAction::AutoReject);
     assert_eq!(proposal.policy_priority.into_u64(), 7);
     assert_eq!(
-        proposal.overlap_mode,
+        proposal.policy_overlap_mode,
         PolicyOverlapMode::RejectSamePriorityOverlap
     );
 }
