@@ -15,7 +15,7 @@ use signal_mentci::{
 };
 
 #[test]
-fn daemon_client_observes_live_mentci_daemon_as_nota() {
+fn daemon_client_observes_live_mentci_daemon_as_dotos() {
     let directory = tempfile::tempdir().expect("tempdir");
     let mentci_socket = directory.path().join("mentci.socket");
     let criome_socket = directory.path().join("criome.socket");
@@ -50,8 +50,8 @@ fn daemon_client_observes_live_mentci_daemon_as_nota() {
     server.join().expect("join server");
     assert_eq!(entry.socket_kind, SocketKind::Mentci);
     assert_eq!(entry.operation, "ObserveInterfaceState");
-    assert!(entry.request_nota.contains("ObserveInterfaceState"));
-    assert!(entry.reply_nota.contains("InterfaceObservationOpened"));
+    assert!(entry.request_dotos.contains("ObserveInterfaceState"));
+    assert!(entry.reply_dotos.contains("InterfaceObservationOpened"));
 }
 
 #[test]
@@ -128,9 +128,9 @@ fn daemon_client_exposes_raw_spirit_payload_in_observed_approval_state() {
     server.join().expect("join server");
     assert_eq!(entry.socket_kind, SocketKind::Mentci);
     assert_eq!(entry.operation, "ObserveInterfaceState");
-    assert!(entry.reply_nota.contains("CriomeInterception"));
-    assert!(entry.reply_nota.contains("component-target"));
-    assert!(entry.reply_nota.contains("component-operation"));
-    assert!(entry.reply_nota.contains("component-raw-payload"));
-    assert!(entry.reply_nota.contains("payload shown"));
+    assert!(entry.reply_dotos.contains("CriomeInterception"));
+    assert!(entry.reply_dotos.contains("component-target"));
+    assert!(entry.reply_dotos.contains("component-operation"));
+    assert!(entry.reply_dotos.contains("component-raw-payload"));
+    assert!(entry.reply_dotos.contains("payload shown"));
 }

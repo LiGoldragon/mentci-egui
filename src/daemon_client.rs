@@ -1,13 +1,13 @@
 //! Real Mentci daemon client used by the egui shell.
 //!
 //! The GUI talks to `mentci-daemon` through `signal-mentci` frames and
-//! renders request/reply payloads as NOTA until purpose-built views exist.
+//! renders request/reply payloads as DOTOS until purpose-built views exist.
 
 use std::io::{Read, Write};
 use std::os::unix::net::UnixStream;
 use std::path::PathBuf;
 
-use nota::NotaEncode;
+use dotos::DotosEncode;
 use signal_frame::{
     ExchangeIdentifier, ExchangeLane, LaneSequence, Reply, RequestPayload, SessionEpoch, SubReply,
 };
@@ -28,8 +28,8 @@ pub struct DaemonTranscriptEntry {
     pub socket_kind: SocketKind,
     pub operation: String,
     pub socket_path: PathBuf,
-    pub request_nota: String,
-    pub reply_nota: String,
+    pub request_dotos: String,
+    pub reply_dotos: String,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -70,7 +70,7 @@ impl DaemonClient {
             subscriber: SubscriberName::new("mentci-egui"),
             interest: InterfaceInterest::FullInterfaceState,
         });
-        let request_nota = request.to_nota();
+        let request_dotos = request.to_dotos();
         let frame = MentciFrame::new(MentciFrameBody::Request {
             exchange: self.exchange(),
             request: request.clone().into_request(),
@@ -80,14 +80,14 @@ impl DaemonClient {
             socket_kind: SocketKind::Mentci,
             operation: "ObserveInterfaceState".to_string(),
             socket_path: self.ordinary_socket.clone(),
-            request_nota,
-            reply_nota: self.reply_nota(reply)?,
+            request_dotos,
+            reply_dotos: self.reply_dotos(reply)?,
         })
     }
 
     /// Observe the daemon's interface state and return the TYPED reply so the
     /// caller can fold it into mentci-lib's `ObservationModel`. The typed
-    /// `MentciReply` is the shared-model input; the NOTA string is only the
+    /// `MentciReply` is the shared-model input; the DOTOS string is only the
     /// fallback rendering.
     pub fn observe_interface_state_typed(
         &self,
@@ -123,8 +123,8 @@ impl DaemonClient {
             socket_kind: SocketKind::MetaMentci,
             operation: "MetaMode".to_string(),
             socket_path: self.meta_socket.clone(),
-            request_nota: "(meta mode selected)".to_string(),
-            reply_nota: "mentci-daemon does not expose a live meta socket yet; startup configuration is still supplied as one binary meta-signal Configure file.".to_string(),
+            request_dotos: "(meta mode selected)".to_string(),
+            reply_dotos: "mentci-daemon does not expose a live meta socket yet; startup configuration is still supplied as one binary meta-signal Configure file.".to_string(),
         }
     }
 
@@ -162,16 +162,16 @@ impl DaemonClient {
         Ok(())
     }
 
-    fn reply_nota(&self, frame: MentciFrame) -> crate::error::Result<String> {
+    fn reply_dotos(&self, frame: MentciFrame) -> crate::error::Result<String> {
         match frame.into_body() {
             MentciFrameBody::Reply { reply, .. } => match reply {
                 Reply::Accepted { per_operation, .. } => match per_operation.into_head() {
-                    SubReply::Ok(reply) => Ok(reply.to_nota()),
+                    SubReply::Ok(reply) => Ok(reply.to_dotos()),
                     other => Ok(format!("{other:?}")),
                 },
                 Reply::Rejected { reason } => Ok(format!("{reason:?}")),
             },
-            MentciFrameBody::SubscriptionEvent { event, .. } => Ok(event.to_nota()),
+            MentciFrameBody::SubscriptionEvent { event, .. } => Ok(event.to_dotos()),
             other => Err(crate::error::Error::UnexpectedDaemonFrame(format!(
                 "{other:?}"
             ))),

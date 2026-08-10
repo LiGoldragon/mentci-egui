@@ -486,7 +486,7 @@ mod tests {
     }
 
     #[test]
-    fn ordinary_control_input_round_trips_as_nota() {
+    fn ordinary_control_input_round_trips_as_dotos() {
         let input =
             GuiControlInput::ObserveState(StateObservation::new(ControllerName::new("agent")));
         let recovered: GuiControlInput = input.to_string().parse().expect("parse");
@@ -495,7 +495,7 @@ mod tests {
     }
 
     #[test]
-    fn meta_control_input_round_trips_as_nota() {
+    fn meta_control_input_round_trips_as_dotos() {
         let input = MetaControlInput::SetRemoteControl(RemoteControlMode::DualWrite);
         let recovered: MetaControlInput = input.to_string().parse().expect("parse");
 

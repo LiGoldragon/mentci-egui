@@ -12,7 +12,7 @@ owns its own view state, presentation state, selected question, transcript
 focus, and remote-control policy.
 
 The first UI surface is intentionally generic: it shows request and reply
-payloads as NOTA so new daemon objects are visible before dedicated panes
+payloads as DOTOS so new daemon objects are visible before dedicated panes
 exist.
 
 ## Boundaries
@@ -31,7 +31,7 @@ Owns:
   behavior.
 - A visible meta lane for privileged operations as `meta-signal-mentci`
   grows a live socket surface.
-- NOTA rendering for typed replies without dedicated widgets.
+- DOTOS rendering for typed replies without dedicated widgets.
 - Following the operating-system light/dark preference: a
   `SystemThemeFollower` reads the desktop colour-scheme (via the desktop
   portal) and mirrors it into egui's visuals, re-probing on a coarse timer
@@ -65,7 +65,7 @@ src/
 ## Runtime Flow
 
 On first frame the app sends `ObserveInterfaceState` to the configured
-ordinary Mentci socket. Replies are rendered in the transcript as NOTA.
+ordinary Mentci socket. Replies are rendered in the transcript as DOTOS.
 The `observe` button repeats the request. Remote controllers send
 `signal-mentci-client::Input` frames to the ordinary control socket; the app
 maps them to the same `mentci-lib::UserEvent` path used by egui controls.
@@ -102,7 +102,7 @@ above; they are listed for traceability rather than re-stated:
 - `xen8` — socket displays identifying the connected component and authority
   channel (`Criome`/`MetaCriome`, not generic labels) → **Runtime Flow**.
 - `xlrk` — interactive GUI client offering ordinary observation plus a
-  meta/write mode, NOTA fallback for typed replies, shaped for long-lived
+  meta/write mode, DOTOS fallback for typed replies, shaped for long-lived
   daemon subscriptions → **Role**, **Boundaries**, **Runtime Flow**.
 
 ## Status
@@ -114,7 +114,7 @@ and renders the approval card. The human's decision goes back through
 `UserEvent::AnswerQuestion`; the model emits it to the mentci daemon, which
 routes the verdict to criome by the parked `AuthorizationRequestSlot`. The shell
 holds no criome connection and never sees a criome verdict — daemon-routing,
-decided 2026-06-21. The old hand-rolled remote-control NOTA socket has been
+decided 2026-06-21. The old hand-rolled remote-control DOTOS socket has been
 removed; ordinary drive is now binary `signal-frame` over the generated
 `signal-mentci-client` contract, policy is binary `signal-frame` over
-`meta-signal-mentci-client`, and NOTA appears only at the CLI text edge.
+`meta-signal-mentci-client`, and DOTOS appears only at the CLI text edge.

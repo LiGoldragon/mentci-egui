@@ -4,13 +4,13 @@
 //! no per-socket state of its own. It holds a `mentci_lib::ObservationModel`
 //! (the shared MVU core, keyed by component socket) and feeds it typed
 //! `signal-mentci` replies as `EngineEvent`s; it paints the model's
-//! `ObservationView` and renders each reply through `mentci_lib`'s NOTA-fallback
+//! `ObservationView` and renders each reply through `mentci_lib`'s DOTOS-fallback
 //! renderer. mentci-lib is the application; this file is the rendering.
 
 use std::sync::mpsc;
 
 use mentci_lib::{
-    Cmd, ComponentSocketKind, CriomeAccess, EngineEvent, ObservationModel, RenderNota,
+    Cmd, ComponentSocketKind, CriomeAccess, EngineEvent, ObservationModel, RenderDotos,
     RenderOrigin, RenderedObject, UserEvent,
 };
 use signal_criome::{ExpiryAction, PolicyOverlapMode};
@@ -30,7 +30,7 @@ use crate::policy_editor::PolicyEditorState;
 use signal_mentci_client::{QuestionCount, TranscriptEntryCount};
 
 /// One rendered observation the shell shows: which operation produced it and
-/// the NOTA body the shared renderer produced.
+/// the DOTOS body the shared renderer produced.
 struct ObservationEntry {
     operation: String,
     rendered: RenderedObject,
@@ -167,7 +167,7 @@ pub struct MentciEguiApp {
     /// The shared model. The shell routes every typed reply through it.
     model: ObservationModel,
     /// Rendered transcript — each entry's body comes from mentci-lib's
-    /// `RenderNota`, not a hand-rolled `to_nota()` in this shell.
+    /// `RenderDotos`, not a hand-rolled `to_dotos()` in this shell.
     entries: Vec<ObservationEntry>,
     daemon_replies: mpsc::Receiver<crate::error::Result<MentciReply>>,
     daemon_reply_sender: mpsc::Sender<crate::error::Result<MentciReply>>,
@@ -453,7 +453,7 @@ impl MentciEguiApp {
                 Ok(reply) => self.absorb_reply(reply),
                 Err(error) => self.entries.push(ObservationEntry {
                     operation: "ObserveInterfaceState (error)".to_string(),
-                    rendered: format!("{error}").render_nota(RenderOrigin::Reply),
+                    rendered: format!("{error}").render_dotos(RenderOrigin::Reply),
                 }),
             }
         }
@@ -463,7 +463,7 @@ impl MentciEguiApp {
     /// not interpret the reply itself — mentci-lib's model owns the state and
     /// the renderer owns the projection.
     fn absorb_reply(&mut self, reply: MentciReply) {
-        let rendered = reply.render_nota(RenderOrigin::Reply);
+        let rendered = reply.render_dotos(RenderOrigin::Reply);
         self.policy_editor.absorb_reply(&reply);
         if let MentciReply::InterfaceObservationOpened(opened) = &reply {
             self.model.on_engine_event(EngineEvent::ObservationOpened {

@@ -1,7 +1,7 @@
 //! One-shot CLI for the `mentci-egui` meta remote-control socket.
 
 use mentci_egui::control::{GuiControlEndpoint, MetaControlClient, MetaControlInput};
-use meta_signal_mentci_client::NotaEncode;
+use meta_signal_mentci_client::DotosEncode;
 
 struct ControlInvocation {
     input: MetaControlInput,
@@ -10,7 +10,7 @@ struct ControlInvocation {
 impl ControlInvocation {
     fn from_arguments() -> mentci_egui::error::Result<Self> {
         let argument = std::env::args().nth(1).unwrap_or_else(|| {
-            panic!("usage: mentci-egui-meta-control '<MetaControlInput NOTA>'");
+            panic!("usage: mentci-egui-meta-control '<MetaControlInput DOTOS>'");
         });
         Ok(Self {
             input: argument
@@ -22,7 +22,7 @@ impl ControlInvocation {
     fn run(self) -> mentci_egui::error::Result<()> {
         let reply = MetaControlClient::new(GuiControlEndpoint::meta_from_environment())
             .submit(self.input)?;
-        println!("{}", reply.to_nota());
+        println!("{}", reply.to_dotos());
         Ok(())
     }
 }
