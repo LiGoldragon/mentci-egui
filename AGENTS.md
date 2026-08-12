@@ -14,3 +14,9 @@ requests, and renders daemon replies.
 
 - **Keep this shell thin.** When tempted to put approval or state logic here,
   put it in the mentci daemon instead.
+
+## Protos estate status
+
+Stack: correct-new destination
+Status: active component, current checkout legacy-wired
+This checkout is not proof of correct-new adoption.
