@@ -32,7 +32,7 @@ tokio        = { version = "1", features = ["rt-multi-thread"] }
 zbus         = "4.4"
 
 [dev-dependencies]
-mentci             = { git = "https://github.com/LiGoldragon/mentci", rev = "aa2ce64448aeba01b20009a7a5a87070d6d9679b" }
+mentci             = { git = "https://github.com/LiGoldragon/mentci", rev = "a731682719de14115627422092bf113eedc02d1e" }
 meta-signal-mentci = { git = "https://github.com/LiGoldragon/meta-signal-mentci.git", rev = "cb93443d3d50716314c98e5d2d6ca4b5bd5dceba" }
 tempfile           = "3"
 
